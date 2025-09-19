@@ -1,0 +1,32 @@
+To make a stacked area chart, you might use
+쌓인 영역형 차트를 만들려면 다음을 사용할 수 있습니다.
+
+
+1. a CSV parser to load data,
+데이터를 로드하기 위한 CSV 파서
+
+2. a time scale for horizontal position (x),
+수평 위치( x ) 에 대한 시간 척도
+
+3. a linear scale for vertical position (y),
+수직 위치( y ) 에 대한 선형 스케일
+
+4. an ordinal scale and categorical scheme for color,
+색상에 대한 순서 형 척도 와 범주형 체계
+
+5. a stack layout for arranging values,
+값을 배열하기 위한 스택 레이아웃
+
+6. an area shape with a linear curve for generating SVG path data,
+SVG 경로 데이터를 생성하기 위한 선형 곡선이 있는 영역 모양
+
+7. axes for documenting the position encodings, and
+위치 인코딩을 문서화하기 위한 축 및
+
+8. selections for creating SVG elements.
+SVG 요소를 만드는 데 필요한 선택 사항 .
+
+
+D3는 고급 차트 라이브러리의 대안이 아니라 "모든 것을 직접 하는 것"의 대안으로 생각 ㅇㅇ
+svg나 canvas를 사용하여 직접 차트를 만들고 싶다면 D3 툴박스 살펴보셈
+D3는 동적인 인터랙티브 시각화에 탁월.

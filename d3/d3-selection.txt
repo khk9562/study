@@ -1,0 +1,9 @@
+d3-selection
+
+Selecting elements - querying for DOM elements.
+Modifying elements - modifying attributes of selected elements.
+Joining data - joining data to selected elements for visualization.
+Handling events - declaring event listeners for interaction.
+Control flow - iterating over selected elements.
+Local variables - attaching state to elements.
+Namespaces - dealing with XML namespaces.
