@@ -1,0 +1,633 @@
+1. TypeScript: 정적 타입 검사자 (Typescript: A Stattic Type Checker)
+
+프로그램을 실행시키기 전에 값의 종류를 기반으로 프로그램의 오류를 찾음
+
+TypeScript JS의 구문의 허용되는, JavaScript의 상위 집합 언어.
+구문은 프로그램을 만들기 위해 코드를 작성하는 방법.
+TypeScript 다른 종류의 값들을 사용할 수 있는 방법이 추가된, 타입이 있는 상위 집합.
+
+
+console.log(4 / []);
+구문적으로 옳은(syntactically-legal) 위 코드는 JS에서는 NaN을 출력하는 반면, TS에서는 오류 발생
+
+정적 타입 검사?
+코드를 실행하기 전에 버그를 미리 발견할 수 있는 도구
+
+
+2. tsc, TypeScript 컴파일러
+
+3. types
+any 타입은 코드상의 특정 라인에 문제가 없다고 TypeScript를 안심시킨다는 목적 단지 하나 때문에 긴 타입을 새로 정의하고 싶지 않을 때 유용하게 사용
+
+4. 매개변수 및 반환타입 표기
+function greet(name: string): string {
+  console.log("Hello, " + name.toUpperCase() + "!!");
+}
+
+
+5. 유니언 타입
+string | number
+해당 유니언 타입의 모든 멤버에 대하여 유효한 작업일 때만 허용됨
+string 타입에만 유효한 메서드는 사용할 수 없음
+function printId(id: number | string) {
+  console.log(id.toUpperCase());
+Property 'toUpperCase' does not exist on type 'string | number'.
+  Property 'toUpperCase' does not exist on type 'number'.
+}
+
+
+6. 타입 별칭
+
+객체 타입과 유니언 타입 사용할 때 재사용하거나 또 다른 이름으로 부르고 싶은 경우 타입 별칭 사용
+type ID = number | string;
+
+
+7. 인터페이스
+인터페이스 선언은 객체 타입을 만드는 또 다른 방법
+interface Point {
+  x: number;
+  y: number;
+}
+
+타입 별칭을 사용한 경우와 마찬가지로, 마치 타입이 없는 임의의 익명 객체를 사용하는 것처럼 동작
+TS는 함수에 전달된 값의 구조에만 관심을 가짐, 즉 예측된 프로퍼티를 가졌는지 여부만을 따짐
+이게 TS가 구조적 타입 시스템이라고 불리는 이유
+
+type과 interface의 가장 핵심적인 차이는,
+타입은 새 프로퍼티를 추가하도록 개방될 수 없는 반면, 인터페이스의 경우 항상 확장될 수 있음
+
+
+(1) 인터페이스 확장하기
+
+interface Animal {
+  name: string
+}
+
+interface Bear extends Animal {
+  honey: boolean
+}
+
+const bear = getBear()
+bear.name
+bear.honey
+        
+
+(2) 교집합을 통하여 타입 확장하기
+
+type Animal = {
+  name: string
+}
+
+type Bear = Animal & {
+  honey: Boolean
+}
+
+const bear = getBear();
+bear.name;
+bear.honey;
+
+인터페이스는 오직 객체의 모양을 선언하는 데만 사용되며, 기존의 원시 타입에 별칭을 부여하는 데는 사용할 수 없음
+
+
+
+8. 타입 단언
+때로는 TypeScript보다 당신이 어떤 값의 타입에 대한 정보를 더 잘 아는 경우도 존재합니다.
+
+예를 들어 코드상에서 document.getElementById가 사용되는 경우, TypeScript는 이때 HTMLElement 중에 무언가가 반환된다는 것만을 알 수 있는 반면에, 당신은 페이지 상에서 사용되는 ID로는 언제나 HTMLCanvasElement가 반환된다는 사실을 이미 알고 있을 때
+
+const myCanvas = document.getElementById('canvas') as HTMLCanvasElement;
+
+꺾쇠괄호를 사용하는 것 또한 (코드가 .tsx 파일이 아닌 경우) 가능하며, 이는 동일한 의미
+const myCanvas = <HTMLCanvasElement>document.getElementById("main_canvas");
+
+* 타입 단언은 컴파일 시간에 제거되므로, 타입 단언에 관련된 검사는 런타임 중에 이뤄지지 않아 틀렸더라도 예외 발생 또는 null이 생성되지 않음
+
+TS에서는 보다 구체적인 또는 덜 구체적인 버전의 타입으로 변환하는 타입 단언만이 허용됨. 아래와 같은 불가능한 강제 변환을 방지함
+const x = "hello" as number;
+-> Conversion of type 'string' to type 'number' may be a mistake because neither type sufficiently overlaps with the other. If this was intentional, convert the expression to 'unknown' first.
+
+****
+이 규칙이 때로는 지나치게 보수적으로 작용하여, 복잡하기는 하지만 유효할 수 있는 강제 변환이 허용되지 않기도 합니다. 이런 경우, 두 번의 단언을 사용할 수 있습니다. any(또는 이후에 소개할 unknown)로 우선 변환한 뒤, 그다음 원하는 타입으로 변환하면 됩니다.
+const a = (expr as any) as T;
+****
+
+
+9. 리터럴 타입
+string과 number와 같은 일반적인 타입 이외에도, 구체적인 문자열과 숫자 값을 타입 위치에서 지정 가능
+
+function printText(s: string, alignment: "left" | "right" | "center") {
+  // ...
+}
+printText("Hello, world", "left");
+printText("G'day, mate", "centre");
+Argument of type '"centre"' is not assignable to parameter of type '"left" | "right" | "center"'.
+
+이넘 타입처럼 고정해서 선언 후 매개변수/반환타입으로 사용 가능?하다는 느낌?
+
+-> boolean 타입 자체는 사실 단지 true | false 유니언 타입의 별칭. 불 리터럴 타입!
+
+
+
+10. null과 undefined
+(1) strictNullChecks 설정 X
+strictNullChecks가 설정되지 않았다면, 어떤 값이 null 또는 undefined일 수 있더라도 해당 값에 평소와 같이 접근할 수 있으며, null과 undefined는 모든 타입의 변수에 대입될 수 있습니다. 이는 Null 검사를 하지 않는 언어(C#, Java 등)의 동작 방식과 유사합니다. Null 검사의 부재는 버그의 주요 원인이 되기도 합니다. 별다른 이유가 없다면, 코드 전반에 걸쳐 strictNullChecks 옵션을 설정하는 것을 항상 권장합니다.
+
+
+(2) strictNullChecks 설정 O
+strictNullChecks가 설정되었다면, 어떤 값이 null 또는 undefined일 때, 해당 값과 함께 메서드 또는 프로퍼티를 사용하기에 앞서 해당 값을 테스트해야 합니다. 옵셔널 프로퍼티를 사용하기에 앞서 undefined 여부를 검사하는 것과 마찬가지로, 좁히기를 통하여 null일 수 있는 값에 대한 검사를 수행할 수 있습니다.
+
+(3)Null 아님 단언 연산자 (접미사 !)
+TypeScript에서는 명시적인 검사를 하지 않고도 타입에서 null과 undefined를 제거할 수 있는 특별한 구문을 제공합니다. 표현식 뒤에 !를 작성하면 해당 값이 null 또는 undefined가 아니라고 타입 단언하는 것입니다.
+function liveDangerously(x?: number | undefined) {
+  // 오류 없음
+  console.log(x!.toFixed());
+}
+다른 타입 단언과 마찬가지로 이 구문은 코드의 런타임 동작을 변화시키지 않으므로, ! 연산자는 반드시 해당 값이 null 또는 undefined가 아닌 경우에만 사용해야 합니다.
+
+
+** 11. 열거형 (Enums)
+어떤 값이 이름이 있는 상수 집합에 속한 값 중 하나일 수 있도록 제한하는 기능
+JavaScript에 타입 수준이 아닌, 언어와 런타임 수준에 추가되는 기능
+https://www.typescriptlang.org/ko/docs/handbook/enums.html
+
+key of type of 
+
+12. typeof 타입 가드
+TypeScript는 이 연산자가 특정 문자열 집합을 반환할 것으로 예상합니다.
+
+"string"
+"number"
+"bigint"
+"boolean"
+"symbol"
+"undefined"
+"object"
+"function"
+
+
+13. 선택적 매개변수
+콜백에 대한 함수 유형을 작성할 때 인수를 전달하지 않고 함수를 호출 하려는 경우가 아니면 선택적 매개변수를 작성 하지 마십시오.
+
+14. 기타 다른 유형
+(1) void
+void값을 반환하지 않는 함수의 반환 값을 나타냄
+함수에 명령문이 없거나 return 반환 명령문에서 명시적인 값을 반환하지 않을 때 유추된 유형
+void is not the same as undefined.
+
+(2) object
+object is not Object. Always use object!
+
+(3) unknown
+function f1(a: any) {
+  a.b(); // OK
+}
+function f2(a: unknown) {
+  a.b();
+'a' is of type 'unknown'.
+}
+
+(4) never
+일부 함수는 값을 반환하지 않습니다.
+
+(5) Function
+bind call apply Function any
+
+The never type represents values which are never observed. In a return type, this means that the function throws an exception or terminates execution of the program.
+
+never also appears when TypeScript determines there’s nothing left in a union.
+
+
+
+15. 나머지 매개변수와 인수
+function multiply(n: number, ...m: number[]) {
+  return m.map((x) => n * x);
+}
+// 'a' gets value [10, 20, 30, 40]
+const a = multiply(10, 1, 2, 3, 4);
+
+나머지 인수
+spread 구문
+const arr1 = [1, 2, 3];
+const arr2 = [4, 5, 6];
+arr1.push(...arr2);
+
+
+일반적으로 TypeScript는 배열이 변경 불가능하다(unmmutable)고 가정하지 않습니다. 이로 인해 다음과 같은 예상치 못한 동작이 발생할 수 있습니다.
+// Inferred type is number[] -- "an array with zero or more numbers",
+// not specifically two numbers
+const args = [8, 5];
+const angle = Math.atan2(...args);
+A spread argument must either have a tuple type or be passed to a rest parameter.
+
+=> 풀이 : Math.atan2() 함수는 정확히 2개의 매개변수가 필요한데, TypeScript는 args가 몇 개의 요소를 가질지 모르므로 에러를 발생
+
+
+이 상황을 해결하는 가장 좋은 방법은 코드에 따라 약간씩 다르지만 일반적으로 const컨텍스트가 가장 간단한 솔루션입니다.
+=> as const를 사용하면 배열을 **튜플(tuple)**로 만듦 -> 튜플은 고정된 개수와 순서가 정해진 요소들의 집합
+as const는 값을 가능한 한 구체적이고 변경 불가능한 타입으로 만들어서, TypeScript가 정확한 타입 추론을 할 수 있게 도와줌
+튜플은 "정확히 몇 개의, 정해진 순서의, 특정 타입들을 가진" 리스트. 배열처럼 보이지만 더 엄격하고 안전
+
+// Inferred as 2-length tuple
+const args = [8, 5] as const;
+// OK
+const angle = Math.atan2(...args);
+
+
+
+16. 함수의 할당 가능성
+반환 유형 void
+반환 유형이 있는 상황적 함수 유형()은 구현 시 다른 값을 반환할 수 있지만 무시 됩니다.voidtype voidFunc = () => void
+
+17. Object Types 객체 유형
+
+(1) readonly 속성
+interface SomeType {
+  readonly prop: string;
+}
+ 
+function doSomething(obj: SomeType) {
+  // We can read from 'obj.prop'.
+  console.log(`prop has the value '${obj.prop}'.`);
+ 
+  // But we can't re-assign it.
+  obj.prop = "hello";
+Cannot assign to 'prop' because it is a read-only property.
+}
+
+
+수정자를 사용한다고 해서 readonly값이 완전히 변경 불가능하다는 것을 의미하는 것은 아닙니다. 다시 말해, 내부 내용을 변경할 수 없다는 뜻입니다. 단지 속성 자체를 다시 쓸 수 없다는 것을 의미합니다.
+
+어떤 의미를 내포하는지에 대한 기대치를 관리하는 것이 중요합니다 readonly. TypeScript 개발 과정에서 객체의 사용 방식에 대한 의도를 명확히 하는 것이 유용합니다. TypeScript는 두 유형의 readonly호환성을 검사할 때 해당 유형의 속성이 존재하는지 여부를 고려하지 않으므로, readonly속성은 별칭을 통해 변경될 수도 있습니다.
+
+
+(2) Index Signatures ????
+interface StringArray {
+  [index: number]: string;
+}
+ 
+const myArray: StringArray = getStringArray();
+const secondItem = myArray[1];
+          
+const secondItem: string
+
+(3) Excess Property Checks
+
+18. 유형 확장 - extends
+interface BasicAddress {
+  name?: string;
+  street: string;
+  city: string;
+  country: string;
+  postalCode: string;
+}
+ 
+interface AddressWithUnit extends BasicAddress {
+  unit: string;
+}
+
+19.  유형 교차 - &
+interface Colorful {
+  color: string;
+}
+interface Circle {
+  radius: number;
+}
+ 
+type ColorfulCircle = Colorful & Circle;
+
+
+20. 유형 확장과 교차 유의
+interface Person1 {
+  name: string;
+}
+ 
+interface Person2 {
+  name: number;
+}
+ 
+type Staff = Person1 & Person2
+ 
+declare const staffer: Staff;
+staffer.name;
+         
+(property) name: never
+노력하다
+이 경우 Staff는 name 속성이 문자열과 숫자 둘 다 되어야 하므로 속성은 유형이 됩니다 never.
+
+
+
+21. Array
+type[]
+
+(1) ReadonlyArray
+변경되어서는 안 되는 배열을 설명하는 특수한 유형
+
+22. Tuple
+정확히 얼마나 많은 요소를 포함하고 있는지, 그리고 특정 위치에 어떤 유형이 포함되어 있는지 알고 있는 또 다른 유형의 유형
+개수와 타입이 지정됨
+
+튜플이 물음표( ?요소 유형 뒤에)를 써서 선택적 속성을 가질 수 있다는 것입니다. 선택적 튜플 요소는 맨 끝에만 올 수 있으며, 튜플의 유형에도 영향을 미칩니다
+
+튜플에는 나머지 요소도 있을 수 있는데, 나머지 요소는 배열/튜플 유형이어야 합니다.
+
+readonly
+튜플 유형
+
+23. 제네릭
+interface GenericIdentityFn {
+  <Type>(arg: Type): Type;
+}
+ 
+function identity<Type>(arg: Type): Type {
+  return arg;
+}
+ 
+let myIdentity: GenericIdentityFn = identity;
+
+
+(1) 상태관리 예시
+
+// JavaScript (기존 코드)
+const [user, setUser] = useState(null);
+const [count, setCount] = useState(0);
+const [todos, setTodos] = useState([]);
+
+// 문제점: user가 뭔지, todos 배열에 뭐가 들어가는지 모름
+setUser({ name: "김철수", age: 30 });
+setTodos([{ id: 1, text: "할일1", completed: false }]);
+
+
+// TypeScript (제네릭 적용)
+interface User {
+  name: string;
+  age: number;
+}
+
+interface Todo {
+  id: number;
+  text: string;
+  completed: boolean;
+}
+
+const [user, setUser] = useState<User | null>(null);
+const [count, setCount] = useState<number>(0);
+const [todos, setTodos] = useState<Todo[]>([]);
+
+// 이제 타입 안전함!
+setUser({ name: "김철수", age: 30 }); // OK
+// setUser({ nickname: "철수" }); // 에러! name 속성이 없음
+
+
+?? 맨날 타스에서 내가 했던게 제네릭임
+
+(2) Props 예시
+// JavaScript
+function UserCard({ user, onEdit }) {
+  return (
+    <div>
+      <h3>{user.name}</h3>
+      <p>나이: {user.age}</p>
+      <button onClick={() => onEdit(user.id)}>수정</button>
+    </div>
+  );
+}
+
+// TypeScript (제네릭 컴포넌트)
+interface User {
+  id: number;
+  name: string;
+  age: number;
+}
+
+interface UserCardProps {
+  user: User;
+  onEdit: (id: number) => void;
+}
+
+function UserCard({ user, onEdit }: UserCardProps) {
+  return (
+    <div>
+      <h3>{user.name}</h3>
+      <p>나이: {user.age}</p>
+      <button onClick={() => onEdit(user.id)}>수정</button>
+    </div>
+  );
+}
+
+// 사용할 때 자동완성과 타입 체크!
+<UserCard 
+  user={{ id: 1, name: "김철수", age: 30 }} 
+  onEdit={(id) => console.log(id)} 
+/>
+
+(3) api 호출 예시
+
+// TypeScript (제네릭 함수)
+async function fetchData<T>(url: string): Promise<T> {
+  const response = await fetch(url);
+  return response.json();
+}
+
+interface User {
+  id: number;
+  name: string;
+  email: string;
+}
+
+interface Product {
+  id: number;
+  title: string;
+  price: number;
+}
+
+// 사용 - 타입을 명시해서 안전하게!
+const userData = await fetchData<User>('/api/users/1');
+console.log(userData.name); // OK! User 타입이므로 name이 있다고 확신
+
+const products = await fetchData<Product[]>('/api/products');
+products.forEach(product => console.log(product.title)); // OK!
+
+
+(4) 커스텀 훅
+// JavaScript
+function useLocalStorage(key, initialValue) {
+  const [value, setValue] = useState(() => {
+    const item = localStorage.getItem(key);
+    return item ? JSON.parse(item) : initialValue;
+  });
+
+  const setStoredValue = (newValue) => {
+    setValue(newValue);
+    localStorage.setItem(key, JSON.stringify(newValue));
+  };
+
+  return [value, setStoredValue];
+}
+
+// TypeScript (제네릭 커스텀 훅)
+function useLocalStorage<T>(key: string, initialValue: T): [T, (value: T) => void] {
+  const [value, setValue] = useState<T>(() => {
+    const item = localStorage.getItem(key);
+    return item ? JSON.parse(item) : initialValue;
+  });
+
+  const setStoredValue = (newValue: T) => {
+    setValue(newValue);
+    localStorage.setItem(key, JSON.stringify(newValue));
+  };
+
+  return [value, setStoredValue];
+}
+
+// 사용 - 타입이 자동으로 추론됨!
+const [theme, setTheme] = useLocalStorage<string>('theme', 'light');
+const [userSettings, setUserSettings] = useLocalStorage<{notifications: boolean}>('settings', { notifications: true });
+
+setTheme('dark'); // OK
+// setTheme(123); // 에러! string 타입이어야 함
+
+
+(5) 리스트 컴포넌트 **
+
+// JavaScript - 범용 리스트 컴포넌트
+function List({ items, renderItem, keyExtractor }) {
+  return (
+    <ul>
+      {items.map((item, index) => (
+        <li key={keyExtractor ? keyExtractor(item) : index}>
+          {renderItem(item)}
+        </li>
+      ))}
+    </ul>
+  );
+}
+
+// TypeScript - 제네릭으로 어떤 타입이든 받을 수 있는 리스트
+interface ListProps<T> {
+  items: T[];
+  renderItem: (item: T) => React.ReactNode;
+  keyExtractor?: (item: T) => string | number;
+}
+
+function List<T>({ items, renderItem, keyExtractor }: ListProps<T>) {
+  return (
+    <ul>
+      {items.map((item, index) => (
+        <li key={keyExtractor ? keyExtractor(item) : index}>
+          {renderItem(item)}
+        </li>
+      ))}
+    </ul>
+  );
+}
+
+// 사용 - 다양한 타입의 데이터로!
+const users = [{ id: 1, name: '김철수' }, { id: 2, name: '이영희' }];
+const products = [{ id: 1, title: '맥북', price: 2000000 }];
+
+<List 
+  items={users} 
+  renderItem={(user) => <span>{user.name}</span>} // user 타입이 자동 추론!
+  keyExtractor={(user) => user.id} 
+/>
+
+<List 
+  items={products} 
+  renderItem={(product) => <span>{product.title}: {product.price}원</span>} 
+  keyExtractor={(product) => product.id} 
+/>
+
+=> 제네릭은 "이 컴포넌트/함수/훅이 어떤 타입이든 받을 수 있지만, 한 번 정하면 그 타입으로 일관성 있게 동작한다"는 의미
+
+꺾쇠괄호 < >가 제네릭 문법
+(관례적으로 대문자 사용)
+
+// 일반적으로 사용하는 제네릭 타입 변수명들
+<T>        // Type의 줄임말, 가장 일반적
+<U>        // 두 번째 타입 (T 다음)
+<K>        // Key 타입
+<V>        // Value 타입
+<E>        // Element 타입
+<P>        // Props 타입 (리액트에서)
+<S>        // State 타입
+<R>        // Return 타입
+
+
+24. Keyof 유형 연산자
+
+유형 keyof 연산자
+연산자 keyof는 객체 유형을 받아서 해당 키의 문자열 또는 숫자 리터럴 합집합을 생성
+type Point = { x: number; y: number };
+type P = keyof Point;
+=> type P = "x" | "y"
+    
+
+25. Typeof 유형 연산자 -> 너무 유용해서 블로그 글 게시함
+유형 typeof 연산자
+
+이 기능은 기본 타입에는 그다지 유용하지 않지만, 다른 타입 연산자와 함께 사용하면 typeof다양한 패턴을 편리하게 표현하는 데 사용할 수 있습니다. 예를 들어, 미리 정의된 타입 을 살펴보겠습니다 ReturnType<T>. 이 타입은 함수 타입을 받아서 반환 타입을 생성합니다.
+
+-> 기존 객체/함수 반환 타입/컴포넌트 Props에서 타입 추출할 때 용이하게 사용할 수 있다고 클러드가 꿀팁 알랴줌~!~!
++ Enum 이나 상수 객체에서 타입 만들기
+// 상태 상수 객체
+const LoadingState = {
+  IDLE: 'idle',
+  LOADING: 'loading',
+  SUCCESS: 'success',
+  ERROR: 'error'
+} as const;
+
+// 이 값들을 타입으로 사용
+type LoadingStateType = typeof LoadingState[keyof typeof LoadingState];
+// 결과: "idle" | "loading" | "success" | "error"
+
+// useState에서 사용
+const [status, setStatus] = useState<LoadingStateType>('idle');
+
+// 함수에서 사용
+function handleStateChange(newState: LoadingStateType) {
+  setStatus(newState); // 자동완성 지원!
+}
+
+26. Indexed Access Types
+추출해서 타입 선언으로 분리하는 과정에서 유용
+
+핵심 사용 시점
+
+복잡한 타입에서 일부만 필요할 때
+API 응답 구조가 깊을 때 특정 부분만 추출
+기존 타입의 속성을 다른 곳에서 재사용할 때
+라이브러리 타입이 복잡할 때 필요한 부분만 가져오기
+폼이나 테이블에서 필드별로 타입을 나눠서 관리할 때
+
+"복잡한 타입 구조에서 점 표기법으로 원하는 부분만 쏙 빼서 쓸 수 있게 해주는" 기능이에요. 타입의 내비게이션 같은 역할입니다!
+
+
+
+27. Conditional Types
+https://velog.io/@steela/Typescript-%EB%A6%AC%EC%95%A1%ED%8A%B8-%EA%B0%9C%EB%B0%9C%EC%9E%90-%EA%B4%80%EC%A0%90%EC%97%90%EC%84%9C-%EC%9D%B4%ED%95%B4%ED%95%98%EB%8A%94-Conditional-Types
+"만약 A 타입이면 B 타입을, 아니면 C 타입을" 하는 타입 레벨의 if문
+기본 문법: T extends U ? X : Y
+
+// 간단한 예시
+type IsString<T> = T extends string ? true : false;
+
+type Test1 = IsString<string>;    // true
+type Test2 = IsString<number>;    // false
+type Test3 = IsString<"안녕">;    // true
+
+// 실용적인 예시
+type ApiResponse<T> = T extends string 
+  ? { message: T; code: number }
+  : { data: T; success: boolean };
+
+type StringResponse = ApiResponse<string>;
+// 결과: { message: string; code: number }
+
+type DataResponse = ApiResponse<{name: string}>;  
+// 결과: { data: {name: string}; success: boolean }
+
+28. Template Literal Types
+https://velog.io/@steela/Typescript-%EB%A6%AC%EC%95%A1%ED%8A%B8-%EA%B0%9C%EB%B0%9C%EC%9E%90-%EA%B4%80%EC%A0%90%EC%97%90%EC%84%9C-%EC%9D%B4%ED%95%B4%ED%95%98%EB%8A%94-Template-Literal-Types
+
+
