@@ -7,3 +7,105 @@ Handling events - declaring event listeners for interaction.
 Control flow - iterating over selected elements.
 Local variables - attaching state to elements.
 Namespaces - dealing with XML namespaces.
+
+
+1. 요소 선택
+
+(1) selection()
+const root = d3.selection()
+
+
+(2) select(selector)
+지정된 선택자 문자열과 일치하는 첫번째 요소 선택
+const svg = d3.select("#chart");
+const anchor = d3.select("a");
+
+선택자가 문자열이 아닌 경우 지정된 노드 선택?
+d3.select(document.body).style("background", "red");
+
+클릭한 문단을 빨간색으로 만들기
+d3.selectAll("p").on("click", (event) => d3.select(event.currentTarget).style("color", "red"));
+
+
+(3) selectAll(selector)
+ Selects all elements that match the specified selector string.
+ 지정된 선택자 문자열과 일치하는 모든 요소 선택
+ 선택자가 문자열이 아니면 지정된 노드 배열 선택.
+ 
+ const p = d3.selectAll("p");
+ d3.selectAll(document.links).style("color", "red");
+
+
+(4) selection.select(selector)
+For each selected element, selects the first descendant element that matches the specified selector string.
+선택된 각 요소에 대해 지정된 선택자 문자열과 일치하는 첫번째 하위 요소를 선택.
+
+const b = d3.selectAll("p").select("b"); // the first <b> in every <p>
+
+선택자가 함수인 경우, 선택된 각 요소에 대해 순서대로 평가됩니다. 이때 현재 데이터( d ), 현재 인덱스( i ), 현재 그룹( nodes )이 전달되고, this는 현재 DOM 요소( nodes [ i ])로 사용됩니다. 선택자는 요소를 반환해야 하며, 일치하는 요소가 없으면 null을 반환합니다.
+
+
+** selection.select는 부모의 데이터를 선택된 자식으로 전파함.
+
+
+(5) selection.selectAll(selector)
+선택된 각 요소에 대해 지정된 선택자 문자열과 일치하는 자손 요소 선택
+const sibling = d3.selectAll("p").selectAll(function() {
+  return [
+    this.previousElementSibling,
+    this.nextElementSibling
+  ];
+});
+
+
+(6) selection.filter(filter)
+Filters the selection, returning a new selection that contains only the elements for which the specified filter is true.
+
+ 테이블 행의 선택 항목을 필터링하여 짝수 행만 포함하려면 다음과 같이 합니다.
+ const even = d3.selectAll("tr").filter(":nth-child(even)");
+
+ (7) selection.selectChild(selector)
+ Returns a new selection with the (first) child of each element of the current selection matching the selector.
+ 현재 선택 항목의 각 요소의 (첫 번째) 자식이 선택자와 일치하는 새 선택 항목을 반환.
+ d3.selectAll("p").selectChild("b") // the first <b> child of every <p>
+ 선택자가 지정되지 않으면 첫번째 자식(있는 경우)을 선택.
+
+ (8) selection.selectChildren(selector)
+ 현재 선택 항목의 각 요소의 자식 노드가 선택자와 일치하는 새 선택 항목을 반환. 선택자가 지정되지 않으면 모든 자식 노드 선택.
+
+
+(9) selection.selection()
+선택 항목 반환
+
+(10) matcher(selector)
+Given the specified selector, returns a function which returns true if this element matches the specified selector. This method is used internally by selection.filter.
+
+지정된 선택자 this 가 주어지면, 요소가 지정된 선택자와 일치하면 true를 반환하는 함수를 반환함.
+이 메서드는 selection.filter 에서 내부적으로 사용됨
+const div = selection.filter("div");
+const div = selection.filter(d3.matcher("div"));
+
+
+(11) selector
+Given the specified selector, returns a function which returns the first descendant of this element that matches the specified selector. This method is used internally by selection.select. 
+지정된 선택자 this가 주어지면, 지정된 선택자와 일치하는 요소의 첫번째 자손을 반환하는 함수를 반환. 이 메서드는 selection.select 에서 내부적으로 사용됨
+
+const div = selection.select("div");
+const div = selection.select(d3.selector("div"));
+
+(12) selectorAll
+지정된 선택자가 this 주어지면, 지정된 선택자와 일치하는 요소 의 모든 하위 항목을 반환하는 함수를 반환합니다 . 이 메서드는 selection.selectAll 메서드 에서 내부적으로 사용
+
+const div = selection.selectAll("div");
+const div = selection.selectAll(d3.selectorAll("div"));
+
+
+(13) window(node)
+Returns the owner window for the specified node. If node is a node, returns the owner document’s default view; if node is a document, returns its default view; otherwise returns the node.
+
+(14) style(node, name)
+ Returns the value of the style property with the specified name for the specified node. If the node has an inline style with the specified name, its value is returned; otherwise, the computed property value is returned. See also selection.style.
+
+ 지정된 노드에 대해 지정된 이름의 스타일 속성 값을 반환.
+ 노드에 지정된 이름의 인라인 스타일이 있으면 해당 값이 반환되고
+ 그렇지 않으면 계산된 속성 값이 반환됨.
