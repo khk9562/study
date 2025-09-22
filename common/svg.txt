@@ -1,0 +1,278 @@
+// ===== 1. BBox (Bounding Box) - 요소의 경계 상자 =====
+
+// getBBox(): 요소가 실제로 차지하는 공간의 정보
+interface SVGRect {
+  x: number;      // 왼쪽 위 모서리 x 좌표
+  y: number;      // 왼쪽 위 모서리 y 좌표  
+  width: number;  // 너비
+  height: number; // 높이
+}
+
+const SVGBBoxExample = () => {
+  const circleRef = useRef<SVGCircleElement>(null);
+  const textRef = useRef<SVGTextElement>(null);
+  const groupRef = useRef<SVGGElement>(null);
+
+  useEffect(() => {
+    if (circleRef.current) {
+      const bbox = circleRef.current.getBBox();
+      console.log('Circle BBox:', {
+        x: bbox.x,       // 원의 중심 - 반지름
+        y: bbox.y,       // 원의 중심 - 반지름  
+        width: bbox.width,   // 지름
+        height: bbox.height  // 지름
+      });
+      // 예: cx=100, cy=100, r=50인 원
+      // bbox = { x: 50, y: 50, width: 100, height: 100 }
+    }
+
+    if (textRef.current) {
+      const textBbox = textRef.current.getBBox();
+      console.log('Text BBox:', textBbox);
+      // 텍스트가 실제로 차지하는 공간 (폰트, 크기에 따라 달라짐)
+    }
+
+    if (groupRef.current) {
+      const groupBbox = groupRef.current.getBBox();
+      // 그룹 안의 모든 요소들을 포함하는 전체 경계 상자
+      console.log('Group BBox:', groupBbox);
+    }
+  }, []);
+
+  return (
+    <svg width={400} height={300}>
+      <circle ref={circleRef} cx={100} cy={100} r={50} fill="blue" />
+      <text ref={textRef} x={200} y={50} fontSize="16">Hello SVG</text>
+      <g ref={groupRef}>
+        <rect x={50} y={150} width={80} height={60} fill="red" />
+        <circle cx={200} cy={180} r={30} fill="green" />
+      </g>
+    </svg>
+  );
+};
+
+// ===== 2. Matrix - 2D 변환 매트릭스 =====
+
+// SVG에서 변환(transform)은 수학적으로 2D 매트릭스로 표현됨
+interface SVGMatrix {
+  a: number;  // X축 스케일링
+  b: number;  // X축 기울기
+  c: number;  // Y축 기울기  
+  d: number;  // Y축 스케일링
+  e: number;  // X축 이동 (translateX)
+  f: number;  // Y축 이동 (translateY)
+}
+
+// 매트릭스 변환 공식:
+// newX = a * oldX + c * oldY + e
+// newY = b * oldX + d * oldY + f
+
+const MatrixExample = () => {
+  const svgRef = useRef<SVGSVGElement>(null);
+  const rectRef = useRef<SVGRectElement>(null);
+
+  const handleTransform = () => {
+    if (svgRef.current && rectRef.current) {
+      // 매트릭스 생성
+      const matrix = svgRef.current.createSVGMatrix();
+      
+      // 변환 설정
+      matrix.a = 1.5;  // X축 1.5배 확대
+      matrix.d = 1.5;  // Y축 1.5배 확대  
+      matrix.e = 50;   // X축으로 50px 이동
+      matrix.f = 30;   // Y축으로 30px 이동
+
+      // 요소에 적용
+      const transform = svgRef.current.createSVGTransformFromMatrix(matrix);
+      rectRef.current.transform.baseVal.appendItem(transform);
+    }
+  };
+
+  return (
+    <div>
+      <button onClick={handleTransform}>매트릭스 변환 적용</button>
+      <svg ref={svgRef} width={400} height={300}>
+        <rect 
+          ref={rectRef} 
+          x={50} y={50} 
+          width={60} height={40} 
+          fill="purple" 
+        />
+      </svg>
+    </div>
+  );
+};
+
+// ===== 3. ViewBox - SVG의 가상 좌표계 =====
+
+// ViewBox 없을 때 vs 있을 때의 차이
+const ViewBoxComparison = () => {
+  return (
+    <div style={{ display: 'flex', gap: '20px' }}>
+      
+      {/* ViewBox 없음 - 픽셀 단위 고정 */}
+      <div>
+        <h3>ViewBox 없음 (고정 크기)</h3>
+        <svg width={200} height={150} style={{ border: '1px solid black' }}>
+          <circle cx={100} cy={75} r={50} fill="red" />
+          <text x={10} y={20} fontSize="14">고정 크기</text>
+        </svg>
+        <p>브라우저 창 크기가 바뀌어도 크기 고정</p>
+      </div>
+
+      {/* ViewBox 있음 - 반응형 */}
+      <div>
+        <h3>ViewBox 있음 (반응형)</h3>
+        <svg 
+          width={200} 
+          height={150} 
+          viewBox="0 0 400 300"  // 가상 좌표계: 400x300
+          style={{ border: '1px solid black' }}
+        >
+          <circle cx={200} cy={150} r={100} fill="blue" />
+          <text x={20} y={40} fontSize="28">반응형</text>
+        </svg>
+        <p>브라우저가 400x300을 200x150에 맞춰서 스케일링</p>
+      </div>
+
+    </div>
+  );
+};
+
+// ===== 4. ViewBox 활용 패턴들 =====
+
+// 패턴 1: 정사각형 ViewBox로 일관된 비율 유지
+const SquareChart = () => (
+  <svg 
+    width="100%" 
+    height="100%" 
+    viewBox="0 0 100 100"  // 100x100 정사각형
+    style={{ maxWidth: '300px', border: '1px solid gray' }}
+  >
+    <circle cx={50} cy={50} r={40} fill="green" />
+  </svg>
+);
+
+// 패턴 2: 차트용 ViewBox (여백 포함)
+const ChartViewBox = () => (
+  <svg 
+    width={400} 
+    height={300} 
+    viewBox="-50 -50 500 400"  // 음수로 시작해서 여백 확보
+  >
+    <rect x={0} y={0} width={400} height={300} fill="lightgray" stroke="black" />
+    <text x={200} y={-20} textAnchor="middle">차트 제목</text>
+  </svg>
+);
+
+// 패턴 3: 동적 ViewBox (데이터에 맞춰 조정)
+const DynamicViewBox = () => {
+  const [data, setData] = useState([
+    { x: 10, y: 20 },
+    { x: 50, y: 80 },
+    { x: 90, y: 30 }
+  ]);
+
+  // 데이터 범위에 맞춰 ViewBox 계산
+  const getViewBox = () => {
+    const xValues = data.map(d => d.x);
+    const yValues = data.map(d => d.y);
+    
+    const minX = Math.min(...xValues) - 10;
+    const minY = Math.min(...yValues) - 10;
+    const maxX = Math.max(...xValues) + 10;
+    const maxY = Math.max(...yValues) + 10;
+    
+    const width = maxX - minX;
+    const height = maxY - minY;
+    
+    return `${minX} ${minY} ${width} ${height}`;
+  };
+
+  return (
+    <svg 
+      width={300} 
+      height={200} 
+      viewBox={getViewBox()}
+      style={{ border: '1px solid blue' }}
+    >
+      {data.map((point, i) => (
+        <circle 
+          key={i}
+          cx={point.x} 
+          cy={point.y} 
+          r={3} 
+          fill="red" 
+        />
+      ))}
+    </svg>
+  );
+};
+
+// ===== 5. D3에서 ViewBox 활용 =====
+const D3ViewBoxChart = () => {
+  const svgRef = useRef<SVGSVGElement>(null);
+  
+  useEffect(() => {
+    if (!svgRef.current) return;
+
+    const svg = d3.select(svgRef.current);
+    const data = [10, 20, 30, 40, 50];
+    
+    // 1. 데이터 기반으로 ViewBox 설정
+    const margin = { top: 20, right: 20, bottom: 30, left: 40 };
+    const width = 400 - margin.left - margin.right;
+    const height = 300 - margin.top - margin.bottom;
+    
+    svg.attr('viewBox', `0 0 400 300`);
+    
+    // 2. 스케일 생성
+    const xScale = d3.scaleLinear()
+      .domain([0, data.length - 1])
+      .range([margin.left, width + margin.left]);
+      
+    const yScale = d3.scaleLinear()
+      .domain([0, d3.max(data)!])
+      .range([height + margin.top, margin.top]);
+    
+    // 3. 차트 그리기
+    svg.selectAll('circle')
+      .data(data)
+      .join('circle')
+      .attr('cx', (d, i) => xScale(i))
+      .attr('cy', d => yScale(d))
+      .attr('r', 5)
+      .attr('fill', 'steelblue');
+      
+  }, []);
+
+  return (
+    <svg 
+      ref={svgRef}
+      width="100%" 
+      height="100%" 
+      style={{ maxWidth: '400px', maxHeight: '300px', border: '1px solid black' }}
+    />
+  );
+};
+
+// ===== 6. 실무 팁: 언제 뭘 써야 할까? =====
+
+/*
+getBBox() 사용 시기:
+- 요소의 실제 크기를 알아야 할 때
+- 텍스트 길이에 맞춰 배경 박스 크기 조정
+- 여러 요소를 정렬할 때
+- 충돌 감지 (collision detection)
+
+Matrix 사용 시기:  
+- 복잡한 변환 (회전 + 크기 + 이동)을 한 번에 처리
+- 애니메이션에서 부드러운 변환
+- 좌표계 변환이 필요한 경우
+
+ViewBox 사용 시기:
+- 반응형 SVG가 필요할 때 (필수!)
+- 다양한 화면 크기 지원
+- 확대/축소 기능
+- 차트나 그래프에서 데이터 범위에 맞춘 자동 스케일링
+*/
