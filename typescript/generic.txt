@@ -1,0 +1,204 @@
+// ===== 1. 제네릭이 없을 때의 문제점 =====
+
+// 문제 상황: 여러 타입에서 동일한 로직을 사용하고 싶다
+function getFirstItem(items: string[]): string {
+  return items[0];
+}
+
+function getFirstNumber(items: number[]): number {
+  return items[0];
+}
+
+function getFirstBoolean(items: boolean[]): boolean {
+  return items[0];
+}
+
+// 😫 같은 로직인데 타입마다 함수를 따로 만들어야 함!
+// 😫 코드 중복이 심하다!
+
+// ===== 2. any 사용? - 타입 안전성 잃음 =====
+function getFirstItemAny(items: any[]): any {
+  return items[0];
+}
+
+// 사용할 때
+const result = getFirstItemAny(['hello', 'world']); 
+// result의 타입이 any라서 타입 체크 안됨
+result.toUpperCase(); // 실행은 되지만 IDE 도움 못받음
+result.push('new'); // 😱 문자열인데 push? 런타임 에러 위험!
+
+// ===== 3. 제네릭 등장! =====
+// <T>는 "타입 변수"라고 생각하세요
+function getFirstItem<T>(items: T[]): T {
+  return items[0];
+}
+
+// 사용할 때 - 타입이 자동으로 추론됨!
+const stringResult = getFirstItem(['hello', 'world']); // string 타입
+const numberResult = getFirstItem([1, 2, 3]); // number 타입
+const boolResult = getFirstItem([true, false]); // boolean 타입
+
+// ===== 4. 제네릭은 "타입의 변수"다! =====
+
+// 일반 변수처럼 생각해보자:
+function add(x: number, y: number): number {
+  return x + y;
+}
+
+// 제네릭도 마찬가지:
+function identity<T>(value: T): T {
+  return value;
+}
+
+// T는 "타입을 담는 변수"
+// 함수 호출할 때 T에 구체적인 타입이 들어감
+const str = identity<string>("hello"); // T = string
+const num = identity<number>(42); // T = number
+
+// ===== 5. 여러 제네릭 변수 사용 =====
+function pair<T, U>(first: T, second: U): [T, U] {
+  return [first, second];
+}
+
+const result1 = pair<string, number>("hello", 42); // [string, number]
+const result2 = pair("world", true); // 타입 추론: [string, boolean]
+
+// ===== 6. 제네릭 제약조건 =====
+// T는 아무 타입이나 될 수 있어서 때로는 제한이 필요
+
+// 문제: T가 뭔지 모르니까 .length를 쓸 수 없음
+function getLength<T>(item: T): number {
+  // return item.length; // ❌ 에러! T에 length가 있는지 모름
+}
+
+// 해결: extends로 제약조건 추가
+function getLength<T extends { length: number }>(item: T): number {
+  return item.length; // ✅ 이제 가능!
+}
+
+getLength("hello"); // ✅ string은 length 있음
+getLength([1, 2, 3]); // ✅ array는 length 있음
+// getLength(42); // ❌ number는 length 없음 - 컴파일 에러
+
+// ===== 7. 인터페이스에서 제네릭 =====
+interface Container<T> {
+  value: T;
+  getValue(): T;
+  setValue(value: T): void;
+}
+
+// 사용
+const stringContainer: Container<string> = {
+  value: "hello",
+  getValue() { return this.value; },
+  setValue(value: string) { this.value = value; }
+};
+
+const numberContainer: Container<number> = {
+  value: 42,
+  getValue() { return this.value; },
+  setValue(value: number) { this.value = value; }
+};
+
+// ===== 8. 클래스에서 제네릭 =====
+class Stack<T> {
+  private items: T[] = [];
+
+  push(item: T): void {
+    this.items.push(item);
+  }
+
+  pop(): T | undefined {
+    return this.items.pop();
+  }
+
+  peek(): T | undefined {
+    return this.items[this.items.length - 1];
+  }
+}
+
+const stringStack = new Stack<string>();
+stringStack.push("first");
+stringStack.push("second");
+// stringStack.push(123); // ❌ 에러! string만 가능
+
+const numberStack = new Stack<number>();
+numberStack.push(1);
+numberStack.push(2);
+
+// ===== 9. React에서 자주 보는 제네릭 =====
+import { useState } from 'react';
+
+// useState도 제네릭이에요!
+const [count, setCount] = useState<number>(0);
+const [name, setName] = useState<string>("");
+const [users, setUsers] = useState<User[]>([]);
+
+interface User {
+  id: number;
+  name: string;
+}
+
+// ===== 10. D3에서 제네릭 - 실제 예시 =====
+import * as d3 from 'd3';
+
+interface DataPoint {
+  timestamp: Date;
+  value: number;
+  category: string;
+}
+
+// ScaleTime<Domain, Range>
+// Domain: 입력받는 데이터 타입
+// Range: 출력하는 데이터 타입
+const xScale: d3.ScaleTime<number, number> = d3.scaleTime()
+  .domain([new Date('2023-01-01'), new Date('2023-12-31')]) // Date 입력
+  .range([0, 800]); // number 출력
+
+// 이제 xScale을 사용할 때:
+const position = xScale(new Date()); // ✅ Date 넣어야 함
+// const wrongPosition = xScale("2023-01-01"); // ❌ 에러! string 불가
+
+// ===== 11. 유틸리티 제네릭 타입들 =====
+interface User2 {
+  id: number;
+  name: string;
+  email: string;
+  age: number;
+}
+
+// Partial<T> - 모든 속성을 optional로
+type PartialUser = Partial<User2>;
+// { id?: number; name?: string; email?: string; age?: number; }
+
+// Pick<T, K> - 특정 속성만 선택
+type UserNameEmail = Pick<User2, 'name' | 'email'>;
+// { name: string; email: string; }
+
+// Omit<T, K> - 특정 속성 제외
+type UserWithoutId = Omit<User2, 'id'>;
+// { name: string; email: string; age: number; }
+
+// ===== 12. 실무 팁: 제네릭 네이밍 컨벤션 =====
+// T, U, V - 일반적인 타입 변수
+// K - Key 타입 (주로 객체의 키)
+// V - Value 타입
+// E - Element 타입 (배열 요소)
+// P - Props 타입 (React 컴포넌트)
+
+function processArray<E>(
+  items: E[], 
+  processor: (item: E) => E
+): E[] {
+  return items.map(processor);
+}
+
+// ===== 요약: 제네릭이 뭔가? =====
+/*
+1. 제네릭 = "타입의 변수"
+2. 함수/클래스/인터페이스를 여러 타입에서 재사용 가능하게 만듦
+3. any보다 안전하고, 코드 중복을 줄임
+4. <T>는 관례적 이름, 원하는 이름 사용 가능
+5. extends로 제약조건 추가 가능
+6. React, D3 등 라이브러리에서 널리 사용됨
+*/
