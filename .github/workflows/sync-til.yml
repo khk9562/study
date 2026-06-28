@@ -4,7 +4,12 @@ on:
   schedule:
     # 매일 한국시간 오전 6시 (UTC 21시)
     - cron: "0 21 * * *"
-  workflow_dispatch: # 수동 실행 허용
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: "테스트 실행 (파일 쓰기·커밋 없이 발행/차단 결과만 확인)"
+        type: boolean
+        default: true
 
 permissions:
   contents: write
@@ -34,9 +39,20 @@ jobs:
           NOTION_TOKEN: ${{ secrets.NOTION_TOKEN }}
           NOTION_DATABASE_ID: ${{ secrets.NOTION_DATABASE_ID }}
           REDACTION_MAP: ${{ secrets.REDACTION_MAP }}
-        run: npm run sync
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          DRY_RUN: ${{ inputs.dry_run }}
+        run: |
+          if [[ "$DRY_RUN" == "true" ]]; then
+            echo "🧪 dry-run 모드 — 커밋하지 않습니다."
+            npm run sync -- --dry-run
+          else
+            npm run sync
+          fi
 
       - name: Commit & push if changed
+        # 예약 실행(schedule) 또는 수동 실행 중 dry_run이 아닐 때만 커밋
+        if: ${{ inputs.dry_run != true }}
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
@@ -46,4 +62,18 @@ jobs:
             git push
           else
             echo "변경 사항 없음 — 커밋 생략"
+          fi
+
+      - name: Notify failure (backstop)
+        # 위 단계가 실패하면(예: npm ci 실패, API 장애) Telegram으로 백업 알림
+        if: failure()
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          if [[ -n "$TELEGRAM_BOT_TOKEN" && -n "$TELEGRAM_CHAT_ID" ]]; then
+            curl -s -X POST "https://api.telegram.org/bot$TELEGRAM_BOT_TOKEN/sendMessage" \
+              -d chat_id="$TELEGRAM_CHAT_ID" \
+              --data-urlencode "text=❌ TIL 동기화 워크플로우 실패. 로그: $RUN_URL" >/dev/null || true
           fi

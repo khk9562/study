@@ -7,6 +7,7 @@ import { createClient, getPublishedPages, type TilPage } from "./notion.js";
 import { pageToMarkdown, buildFrontmatter, slugify, tagToDir } from "./convert.js";
 import { redact } from "./redact.js";
 import { buildReadme, type IndexEntry } from "./buildIndex.js";
+import { sendTelegram, telegramEnabled } from "./telegram.js";
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
 const TIL_DIR = join(ROOT, "til");
@@ -28,6 +29,9 @@ async function main() {
   if (Object.keys(cfg.redactionMap).length === 0) {
     console.warn("⚠ REDACTION_MAP 이 비어 있습니다. 치환 없이 denylist만 동작합니다.");
   }
+
+  const tag = cfg.dryRun ? "🧪 [테스트] " : "";
+  await sendTelegram(cfg.telegram, `${tag}🔄 TIL 동기화 시작`);
 
   const pages = await getPublishedPages(notion, cfg.databaseId);
   console.log(`  공개(공개=✓) 글: ${pages.length}개`);
@@ -108,9 +112,38 @@ async function main() {
     ];
     await writeFile(process.env.GITHUB_STEP_SUMMARY, lines.join("\n") + "\n", { flag: "a" });
   }
+
+  // Telegram 완료 알림 (발행 목록 + 발행 실패 목록·사유)
+  if (telegramEnabled(cfg.telegram)) {
+    const cap = 30; // 메시지 길이 보호용
+    const pubList = written.length
+      ? written.slice(0, cap).map((e) => `• ${e.title}`).join("\n") +
+        (written.length > cap ? `\n…외 ${written.length - cap}건` : "")
+      : "(없음)";
+    const blockList = blocked.length
+      ? blocked.slice(0, cap).map((b) => `• ${b.title} — ${b.reasons.join(", ")}`).join("\n") +
+        (blocked.length > cap ? `\n…외 ${blocked.length - cap}건` : "")
+      : "(없음)";
+    const msg = [
+      `${tag}✅ TIL 동기화 완료`,
+      "",
+      `📤 발행 ${written.length}건:`,
+      pubList,
+      "",
+      `⛔ 발행 실패 ${blocked.length}건 (보안 필터):`,
+      blockList,
+    ].join("\n");
+    await sendTelegram(cfg.telegram, msg);
+  }
 }
 
-main().catch((e) => {
+main().catch(async (e) => {
   console.error("동기화 실패:", e);
+  // 스크립트 자체가 죽은 경우(API 장애·설정 오류 등) 실패 알림. config 로딩 실패도 커버하도록 env 직접 사용.
+  const dry = process.argv.includes("--dry-run") ? "🧪 [테스트] " : "";
+  await sendTelegram(
+    { token: process.env.TELEGRAM_BOT_TOKEN?.trim(), chatId: process.env.TELEGRAM_CHAT_ID?.trim() },
+    `${dry}❌ TIL 동기화 실패\n\n사유: ${(e as Error).message}`
+  );
   process.exit(1);
 });
