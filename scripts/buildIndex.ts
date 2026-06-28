@@ -8,10 +8,11 @@ export interface IndexEntry {
   path: string;
 }
 
-const HEADER = `# 🌱 TIL
+const HEADER = `# 📚 archive_studying
 
-> 이 레포는 [Notion TIL](https://www.notion.so)에서 **자동 생성**됩니다. 직접 수정하지 마세요 — 매일 동기화 시 덮어쓰여집니다.
-> 작성은 Notion에서, \`공개\` 체크박스를 켠 글만 여기로 흡수됩니다. (회사/보안 정보는 레드액션으로 필터링)
+> 학습 기록 아카이브 — **Notion TIL**과 **Velog** 글을 자동으로 마크다운 동기화합니다.
+> 이 파일은 자동 생성됩니다. 직접 수정하지 마세요 — 동기화 시 덮어쓰여집니다.
+> 작성은 Notion/Velog에서, 공개 글만 흡수되며 회사·보안 정보는 필터링됩니다.
 
 `;
 
@@ -85,7 +86,7 @@ export function buildReadme(entries: IndexEntry[]): string {
   );
 
   let out = HEADER + OVERVIEW;
-  out += `총 **${entries.length}**개의 글 · **${folders.length}**개 폴더\n\n`;
+  out += `---\n\n# 📒 Notion TIL\n\n총 **${entries.length}**개의 글 · **${folders.length}**개 폴더 · [📦 Velog 아카이브 →](velog/README.md)\n\n`;
 
   for (const folder of folders) {
     const list = byFolder
