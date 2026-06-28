@@ -21,7 +21,7 @@ const OVERVIEW = `
 Notion의 \`🌱 TIL\` 데이터베이스를 **GitHub로 단방향 자동 동기화**하는 미러입니다. 작성은 Notion에서 하고, 공개해도 되는 글만 골라 마크다운으로 흡수합니다.
 
 ### 동작 방식
-- **매일 한국시간 06:00** GitHub Actions가 Notion을 읽어 마크다운으로 변환 후 커밋합니다. (수동 실행도 가능)
+- **매일 한국시간 오후 8시(20:00)** GitHub Actions가 Notion을 읽어 마크다운으로 변환 후 커밋합니다. (수동 실행도 가능)
 - Notion에서 \`공개\` 체크박스를 켠 글만 대상이 됩니다.
 - \`til/\` 는 매 실행마다 전체 재생성 → Notion에서 공개를 끄거나 삭제하면 레포에서도 사라집니다(멱등성).
 - 결과는 **태그별 폴더**로 정리되고, 이 README 인덱스가 자동 갱신됩니다.
@@ -58,7 +58,7 @@ npm run secrets:redaction
 \`\`\`
 
 - **수동 동기화**: GitHub Actions 탭 → *Sync TIL from Notion* → *Run workflow* (기본은 커밋 없는 테스트 실행, 실제 반영하려면 체크 해제).
-- **자동 동기화**: 매일 한국시간 06:00.
+- **자동 동기화**: 매일 한국시간 오후 8시(20:00).
 `;
 
 export function buildReadme(entries: IndexEntry[]): string {
