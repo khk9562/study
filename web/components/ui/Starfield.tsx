@@ -28,14 +28,15 @@ function buildShadow(seed: number, count: number, w: number, h: number): string 
 }
 
 export function Starfield() {
-  // 크기/개수/속도가 다른 3개 레이어 → 깊이감
+  // 크기/개수/속도가 다른 레이어 → 깊이감. 개수를 충분히 늘려 빽빽하게.
   const layers = useMemo(() => {
-    const W = 1920;
-    const H = 1200;
+    const W = 2000;
+    const H = 1100;
     return [
-      { size: 1, shadow: buildShadow(1, 80, W, H), twinkle: 4, drift: 90 },
-      { size: 2, shadow: buildShadow(2, 36, W, H), twinkle: 6, drift: 130 },
-      { size: 3, shadow: buildShadow(3, 16, W, H), twinkle: 9, drift: 170 },
+      { size: 1, shadow: buildShadow(1, 520, W, H), twinkle: 4, drift: 90 },
+      { size: 1, shadow: buildShadow(7, 300, W, H), twinkle: 5.5, drift: 110 },
+      { size: 2, shadow: buildShadow(2, 200, W, H), twinkle: 7, drift: 140 },
+      { size: 3, shadow: buildShadow(3, 70, W, H), twinkle: 9, drift: 180 },
     ];
   }, []);
 
@@ -44,8 +45,9 @@ export function Starfield() {
       aria-hidden
       className="no-print pointer-events-none fixed left-0 top-0 -z-10 hidden h-screen w-screen overflow-hidden dark:block"
       style={{
-        WebkitMaskImage: "radial-gradient(130% 100% at 0% 0%, #000 35%, transparent 78%)",
-        maskImage: "radial-gradient(130% 100% at 0% 0%, #000 35%, transparent 78%)",
+        // 좌→우 페이드(왼쪽 진하게). 그라데이션이 과하지 않게 완만히.
+        WebkitMaskImage: "linear-gradient(to right, #000 0%, #000 55%, transparent 96%)",
+        maskImage: "linear-gradient(to right, #000 0%, #000 55%, transparent 96%)",
       }}
     >
       {layers.map((l, i) => (
