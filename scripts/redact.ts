@@ -1,4 +1,4 @@
-import { scanDenylist } from "./denylist.js";
+import { applyMasks, scanDenylist } from "./denylist.js";
 
 /** 정규식 메타문자를 이스케이프한다. */
 function escapeRegExp(s: string): string {
@@ -30,13 +30,15 @@ export interface RedactionResult {
 }
 
 /**
- * 1) 치환 사전 적용 → 2) denylist 이중 스캔.
- * 위험 패턴은 **원본**과 **치환 후** 양쪽에서 검사한다.
- * 치환이 회사 도메인을 가려 이메일 정규식을 빠져나가는 엣지 케이스(dev@회사B.com)까지
- * 원본 검사로 잡아내기 위함. 어느 한쪽이라도 걸리면 safe=false (발행 차단).
+ * 1) 마스킹(이메일/IP → placeholder) → 2) 치환 사전(회사명 등) → 3) 차단 규칙 검사.
+ *
+ * 마스킹은 **원본 기준**으로 먼저 적용한다. 회사명 치환이 도메인을 한글로 바꿔
+ * 이메일 정규식을 빠져나가는 엣지(dev@회사B.com)를 막기 위함.
+ * 차단 규칙(토큰/키 등)은 원본·결과 양쪽에서 검사해 하나라도 걸리면 safe=false(발행 차단).
  */
 export function redact(text: string, map: Record<string, string>): RedactionResult {
-  const redacted = applyRedactionMap(text, map);
+  const masked = applyMasks(text);
+  const redacted = applyRedactionMap(masked, map);
   const blockedBy = [...new Set([...scanDenylist(text), ...scanDenylist(redacted)])];
   return {
     text: redacted,
