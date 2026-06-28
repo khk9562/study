@@ -25,7 +25,7 @@ Notion의 \`🌱 TIL\` 데이터베이스를 **GitHub로 단방향 자동 동기
 - Notion에서 \`공개\` 체크박스를 켠 글만 대상이 됩니다.
 - **증분 동기화** — Notion에서 마지막으로 편집한 글만 덮어쓰고, 안 바뀐 글은 그대로 둡니다. 변경이 없는 날은 커밋도 생기지 않습니다.
 - 공개를 끄거나 삭제한 글은 레포에서도 제거됩니다. (치환사전/denylist를 바꾼 뒤 전 글에 재적용하려면 *force* 재빌드 사용)
-- 각 글에는 학습 날짜(또는 기간)가 표기되고, Notion의 **\`폴더\` 속성값**으로 폴더가 정해집니다(없으면 첫 태그 → 기타). 새 분류가 필요하면 Notion에서 \`폴더\` 옵션을 새로 만들면 그게 곧 새 폴더입니다. README 인덱스는 태그별로 자동 갱신됩니다.
+- 각 글에는 학습 날짜(또는 기간)가 표기되고, Notion의 **\`폴더\` 속성값**으로 폴더가 정해집니다(없으면 첫 태그 → 기타). 새 분류가 필요하면 Notion에서 \`폴더\` 옵션을 새로 만들면 그게 곧 새 폴더입니다. 아래 인덱스도 **폴더별**로 자동 갱신됩니다.
 
 ### 보안 필터 (공개 레포 안전장치)
 - **치환 사전** — 회사명·프로젝트명·벤더명 등 민감어를 대체어로 치환. 매핑은 \`REDACTION_MAP\` GitHub Secret에만 두고 레포엔 커밋하지 않습니다.
@@ -68,30 +68,33 @@ export function buildReadme(entries: IndexEntry[]): string {
     return HEADER + OVERVIEW + "\n_아직 공개된 글이 없습니다._\n" + FOOTER;
   }
 
-  // 태그별 그룹화 (글이 여러 태그를 가지면 모든 태그 그룹에 등장)
-  const byTag = new Map<string, IndexEntry[]>();
+  // 폴더별 그룹화 (파일 경로 til/<폴더>/... 의 폴더 = 실제 디렉터리와 일치, 글은 한 폴더에만)
+  const byFolder = new Map<string, IndexEntry[]>();
   for (const e of entries) {
-    const tags = e.tags.length ? e.tags : ["기타"];
-    for (const tag of tags) {
-      if (!byTag.has(tag)) byTag.set(tag, []);
-      byTag.get(tag)!.push(e);
-    }
+    const parts = e.path.split("/");
+    const folder = parts.length >= 3 ? parts[1] : "기타";
+    if (!byFolder.has(folder)) byFolder.set(folder, []);
+    byFolder.get(folder)!.push(e);
   }
 
-  const sortedTags = [...byTag.keys()].sort((a, b) => a.localeCompare(b, "ko"));
+  // 글 많은 폴더 먼저, 동수면 가나다순
+  const folders = [...byFolder.keys()].sort(
+    (a, b) => byFolder.get(b)!.length - byFolder.get(a)!.length || a.localeCompare(b, "ko")
+  );
 
   let out = HEADER + OVERVIEW;
-  out += `총 **${entries.length}**개의 글 · **${sortedTags.length}**개 주제\n\n`;
+  out += `총 **${entries.length}**개의 글 · **${folders.length}**개 폴더\n\n`;
 
-  for (const tag of sortedTags) {
-    const list = byTag
-      .get(tag)!
+  for (const folder of folders) {
+    const list = byFolder
+      .get(folder)!
       .slice()
       .sort((a, b) => b.date.localeCompare(a.date));
-    out += `## ${tag}\n\n`;
+    out += `## ${folder} (${list.length})\n\n`;
     for (const e of list) {
       const link = encodeURI(e.path);
-      out += `- ${e.date} · [${e.title}](${link})\n`;
+      const tags = e.tags.length ? ` _(${e.tags.join(", ")})_` : "";
+      out += `- ${e.date} · [${e.title}](${link})${tags}\n`;
     }
     out += "\n";
   }
