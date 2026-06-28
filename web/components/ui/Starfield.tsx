@@ -48,6 +48,8 @@ export function Starfield() {
         // 좌→우 페이드(왼쪽 진하게). 그라데이션이 과하지 않게 완만히.
         WebkitMaskImage: "linear-gradient(to right, #000 0%, #000 55%, transparent 96%)",
         maskImage: "linear-gradient(to right, #000 0%, #000 55%, transparent 96%)",
+        // 위는 풀너비, 아래는 50% 너비 → 우측 경계가 대각선으로 좁아지는 사다리꼴
+        clipPath: "polygon(0 0, 100% 0, 50% 100%, 0 100%)",
       }}
     >
       {layers.map((l, i) => (
