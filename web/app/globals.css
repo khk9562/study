@@ -67,10 +67,32 @@ body {
   color: var(--accent-foreground);
 }
 
+/* ── 다크모드 Starfield (design-system §9.2) ──────────────────── */
+@keyframes star-twinkle {
+  0%,
+  100% {
+    opacity: 0.2;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+@keyframes star-drift {
+  from {
+    transform: translateY(0);
+  }
+  to {
+    transform: translateY(-40px);
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   * {
     animation: none !important;
     transition: none !important;
+  }
+  .star-layer {
+    animation: none !important;
   }
 }
 
