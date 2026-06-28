@@ -57,7 +57,7 @@ export default async function FolderPage({
                     {p.title}
                   </h3>
                   {p.excerpt && (
-                    <p className="mt-1.5 line-clamp-2 text-[13px] leading-relaxed text-muted-2">
+                    <p className="mt-1.5 line-clamp-2 px-1.5 text-[11px] leading-relaxed text-muted-2/70">
                       {p.excerpt}
                     </p>
                   )}
