@@ -75,9 +75,79 @@ export function stripImages(md: string): string {
   return md.replace(/!\[[^\]]*\]\([^)]*\)/g, "*(이미지 생략)*");
 }
 
-/** 노션 페이지 본문을 마크다운 문자열로 변환한다. (이미지는 보안상 제거) */
+/** 노션 DB 속성 1칸을 표 셀 텍스트로 변환. (파이프/줄바꿈 이스케이프) */
+function cellToText(p: any): string {
+  let v = "";
+  switch (p?.type) {
+    case "title": v = (p.title ?? []).map((t: any) => t.plain_text).join(""); break;
+    case "rich_text": v = (p.rich_text ?? []).map((t: any) => t.plain_text).join(""); break;
+    case "number": v = p.number == null ? "" : String(p.number); break;
+    case "select": v = p.select?.name ?? ""; break;
+    case "status": v = p.status?.name ?? ""; break;
+    case "multi_select": v = (p.multi_select ?? []).map((s: any) => s.name).join(", "); break;
+    case "date": v = p.date ? (p.date.end ? `${p.date.start} ~ ${p.date.end}` : p.date.start ?? "") : ""; break;
+    case "checkbox": v = p.checkbox ? "✓" : "✗"; break;
+    case "url": v = p.url ?? ""; break;
+    case "email": v = p.email ?? ""; break;
+    case "phone_number": v = p.phone_number ?? ""; break;
+    case "people": v = (p.people ?? []).map((x: any) => x.name).filter(Boolean).join(", "); break;
+    case "created_time": v = (p.created_time ?? "").slice(0, 10); break;
+    case "last_edited_time": v = (p.last_edited_time ?? "").slice(0, 10); break;
+    case "formula": v = p.formula ? String(p.formula[p.formula.type] ?? "") : ""; break;
+    case "rollup": v = p.rollup?.type === "number" ? String(p.rollup.number ?? "") : ""; break;
+    case "relation": v = (p.relation ?? []).length ? `(${p.relation.length})` : ""; break;
+    default: v = "";
+  }
+  return v.replace(/\|/g, "\\|").replace(/\r?\n+/g, " ").trim();
+}
+
+/** 인라인 child 데이터베이스를 마크다운 표로 렌더링. 이미지/파일 컬럼은 제외. */
+async function renderChildDatabase(notion: Client, databaseId: string): Promise<string> {
+  let db: any;
+  try {
+    db = await notion.databases.retrieve({ database_id: databaseId });
+  } catch {
+    return ""; // 접근 불가/링크드뷰 등 → 폴백
+  }
+  const cols = Object.entries<any>(db.properties)
+    .filter(([, p]) => p.type !== "files") // 이미지/파일 컬럼 제외
+    .map(([name, p]) => ({ name, type: p.type }))
+    .sort((a, b) =>
+      a.type === "title" ? -1 : b.type === "title" ? 1 : a.name.localeCompare(b.name, "ko")
+    );
+  if (cols.length === 0) return "";
+
+  const rows: any[] = [];
+  let cursor: string | undefined = undefined;
+  do {
+    const res: any = await notion.databases.query({
+      database_id: databaseId,
+      start_cursor: cursor,
+      page_size: 100,
+    });
+    rows.push(...res.results);
+    cursor = res.has_more ? res.next_cursor : undefined;
+  } while (cursor);
+  if (rows.length === 0) return "";
+
+  const header = `| ${cols.map((c) => c.name).join(" | ")} |`;
+  const sep = `| ${cols.map(() => "---").join(" | ")} |`;
+  const body = rows
+    .map((r) => `| ${cols.map((c) => cellToText(r.properties?.[c.name])).join(" | ")} |`)
+    .join("\n");
+  return `${header}\n${sep}\n${body}`;
+}
+
+/** 노션 페이지 본문을 마크다운 문자열로 변환한다. (이미지 제거 + child DB는 표로 렌더링) */
 export async function pageToMarkdown(notion: Client, pageId: string): Promise<string> {
   const n2m = new NotionToMarkdown({ notionClient: notion });
+  // 인라인 child DB → 표. 행이 없거나 파일/이미지 전용이면 false 반환 → 기본 동작(제목)으로 폴백.
+  n2m.setCustomTransformer("child_database", async (block: any) => {
+    const table = await renderChildDatabase(notion, block.id);
+    if (!table) return false;
+    const title = block.child_database?.title;
+    return `${title ? `**${title}**\n\n` : ""}${table}`;
+  });
   const blocks = await n2m.pageToMarkdown(pageId);
   const md = n2m.toMarkdownString(blocks);
   return stripImages((md.parent ?? "").trim());
