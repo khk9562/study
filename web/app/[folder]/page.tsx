@@ -51,25 +51,28 @@ export default async function FolderPage({
               <li>
                 <Link
                   href={`/${encodeURIComponent(folder)}/${encodeURIComponent(p.slug)}`}
-                  className="group block py-5"
+                  className="group block rounded-lg px-3 py-5 transition-colors hover:bg-surface-2/50 sm:px-4"
                 >
                   <h3 className="text-base font-semibold tracking-tight text-foreground transition-colors group-hover:text-accent">
                     {p.title}
                   </h3>
                   {p.excerpt && (
-                    <p className="mt-1.5 line-clamp-2 text-sm leading-relaxed text-muted">
+                    <p className="mt-1.5 line-clamp-2 text-[13px] leading-relaxed text-muted-2">
                       {p.excerpt}
                     </p>
                   )}
-                  <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-2">
-                    <span className="font-mono text-xs text-muted-2">
-                      작성 {created} · 수정 {p.edited}
+                  <div className="mt-3 flex items-center justify-between gap-3">
+                    <div className="flex flex-wrap gap-1.5">
+                      {p.tags.slice(0, 4).map((t) => (
+                        <Badge key={t} variant="outline">
+                          {t}
+                        </Badge>
+                      ))}
+                    </div>
+                    <span className="shrink-0 font-mono text-xs text-muted-2">
+                      작성 {created}
+                      {p.edited && ` · 수정 ${p.edited}`}
                     </span>
-                    {p.tags.slice(0, 4).map((t) => (
-                      <Badge key={t} variant="outline">
-                        {t}
-                      </Badge>
-                    ))}
                   </div>
                 </Link>
               </li>

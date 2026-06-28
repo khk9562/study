@@ -50,8 +50,12 @@ export default async function PostPage({
 
         <div className="mt-4 flex flex-wrap items-center gap-x-4 gap-y-2 font-mono text-xs text-muted-2">
           <span>작성 {created}</span>
-          <span>·</span>
-          <span>수정 {post.edited}</span>
+          {post.edited && (
+            <>
+              <span>·</span>
+              <span>수정 {post.edited}</span>
+            </>
+          )}
           {post.velogUrl && (
             <a
               href={post.velogUrl}

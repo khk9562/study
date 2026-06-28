@@ -40,12 +40,15 @@ function listMarkdown(dir: string): string[] {
 }
 
 function dateOnly(v: unknown): string {
-  return typeof v === "string" ? v.slice(0, 10) : "";
+  // gray-matter(js-yaml)는 YAML 날짜를 Date 객체로 파싱하므로 둘 다 처리
+  if (v instanceof Date) return v.toISOString().slice(0, 10);
+  if (typeof v === "string") return v.slice(0, 10);
+  return "";
 }
 
 /** 마크다운 본문 → 목록용 평문 발췌. 메타 인용구·코드·이미지·서식 제거. */
 function toExcerpt(body: string): string {
-  return body
+  const plain = body
     .replace(/```[\s\S]*?```/g, " ") // 코드블록
     .split("\n")
     .filter((l) => !l.trim().startsWith(">")) // 메타 인용구(📅 학습일 / 🔗 원본)
@@ -57,8 +60,10 @@ function toExcerpt(body: string): string {
     .replace(/^\s*\d+\.\s+/gm, "") // 번호목록
     .replace(/[*_`~|]/g, " ") // 강조/표 기호
     .replace(/\s+/g, " ")
-    .trim()
-    .slice(0, 200);
+    .trim();
+  // 충분히 길게 잘라 2줄 line-clamp가 항상 ellipsis 처리하도록. 잘렸으면 … 부착.
+  const max = 300;
+  return plain.length > max ? plain.slice(0, max).trimEnd() + "…" : plain;
 }
 
 let _cache: Post[] | null = null;
@@ -85,8 +90,8 @@ export function getAllPosts(): Post[] {
       usedKeys.add(key);
 
       const created = dateOnly(data.date) || dateOnly(data.synced_at);
-      const edited =
-        dateOnly(data.notion_last_edited) || dateOnly(data.velog_updated) || created;
+      // 실제 편집일 필드만(폴백 없음) → 없으면 빈 문자열 → UI에서 '수정' 라벨 숨김
+      const edited = dateOnly(data.notion_last_edited) || dateOnly(data.velog_updated);
 
       posts.push({
         folder,
