@@ -53,9 +53,14 @@ export default async function FolderPage({
                   href={`/${encodeURIComponent(folder)}/${encodeURIComponent(p.slug)}`}
                   className="group block rounded-lg px-3 py-5 transition-colors hover:bg-surface-2/50 sm:px-4"
                 >
-                  <h3 className="text-base font-semibold tracking-tight text-foreground transition-colors group-hover:text-accent">
-                    {p.title}
-                  </h3>
+                  <div className="flex items-baseline gap-2.5">
+                    <span className="shrink-0 font-black tabular-nums text-lg leading-none text-accent/25">
+                      {String(i + 1).padStart(2, "0")}
+                    </span>
+                    <h3 className="text-base font-semibold tracking-tight text-foreground transition-colors group-hover:text-accent">
+                      {p.title}
+                    </h3>
+                  </div>
                   {p.excerpt && (
                     <p className="mt-1.5 line-clamp-2 px-1.5 text-[11px] leading-relaxed text-muted-2/70">
                       {p.excerpt}
