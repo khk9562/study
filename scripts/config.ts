@@ -29,6 +29,8 @@ export interface Config {
   /** 민감어 → 대체어 치환 사전. 공개 레포에 커밋하지 않고 Secret(REDACTION_MAP)으로 주입. */
   redactionMap: Record<string, string>;
   dryRun: boolean;
+  /** 전체 재빌드(증분 무시). 치환사전/denylist 변경 후 전 글에 재적용할 때 사용. */
+  force: boolean;
   /** Telegram 알림(선택). 둘 다 있을 때만 활성화. */
   telegram: { token?: string; chatId?: string };
 }
@@ -63,6 +65,7 @@ export function loadConfig(): Config {
     databaseId: required("NOTION_DATABASE_ID"),
     redactionMap,
     dryRun: process.argv.includes("--dry-run"),
+    force: process.argv.includes("--force") || process.env.FORCE_REBUILD === "true",
     telegram: {
       token: process.env.TELEGRAM_BOT_TOKEN?.trim(),
       chatId: process.env.TELEGRAM_CHAT_ID?.trim(),

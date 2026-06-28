@@ -4,9 +4,13 @@ export interface TilPage {
   id: string;
   title: string;
   tags: string[];
-  /** ISO date (YYYY-MM-DD) 또는 null */
+  /** 학습 시작일 ISO date (YYYY-MM-DD) 또는 null */
   date: string | null;
+  /** 학습 종료일(날짜 범위일 때만). 단일 날짜면 null */
+  dateEnd: string | null;
   createdTime: string;
+  /** Notion 마지막 편집시각(ISO). 증분 동기화 변경 감지에 사용 */
+  lastEdited: string;
 }
 
 /** 페이지 속성에서 안전하게 값 추출 */
@@ -24,6 +28,12 @@ function readTags(props: any): string[] {
 
 function readDate(props: any): string | null {
   const d = props?.["날짜"]?.date?.start;
+  if (typeof d === "string") return d.slice(0, 10);
+  return null;
+}
+
+function readDateEnd(props: any): string | null {
+  const d = props?.["날짜"]?.date?.end;
   if (typeof d === "string") return d.slice(0, 10);
   return null;
 }
@@ -57,7 +67,9 @@ export async function getPublishedPages(
         title: readTitle(props) || "(제목 없음)",
         tags: readTags(props),
         date: readDate(props),
+        dateEnd: readDateEnd(props),
         createdTime: page.created_time,
+        lastEdited: page.last_edited_time,
       });
     }
 

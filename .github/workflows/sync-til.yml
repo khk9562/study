@@ -10,6 +10,10 @@ on:
         description: "테스트 실행 (파일 쓰기·커밋 없이 발행/차단 결과만 확인)"
         type: boolean
         default: true
+      force_rebuild:
+        description: "전체 재빌드 (증분 무시 - 치환사전/denylist 변경 후 전 글 재적용)"
+        type: boolean
+        default: false
 
 permissions:
   contents: write
@@ -42,6 +46,7 @@ jobs:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
           DRY_RUN: ${{ inputs.dry_run }}
+          FORCE_REBUILD: ${{ inputs.force_rebuild }}
         run: |
           if [[ "$DRY_RUN" == "true" ]]; then
             echo "🧪 dry-run 모드 — 커밋하지 않습니다."

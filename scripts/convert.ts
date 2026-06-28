@@ -25,17 +25,44 @@ function yamlEscape(s: string): string {
 
 export function buildFrontmatter(page: TilPage, syncedAt: string): string {
   const tags = page.tags.map((t) => `"${yamlEscape(t)}"`).join(", ");
+  const start = page.date ?? page.createdTime.slice(0, 10);
   const lines = [
     "---",
     `title: "${yamlEscape(page.title)}"`,
     `tags: [${tags}]`,
-    `date: ${page.date ?? page.createdTime.slice(0, 10)}`,
+    `date: ${start}`,
+  ];
+  if (page.dateEnd && page.dateEnd !== start) lines.push(`end_date: ${page.dateEnd}`);
+  lines.push(
     `notion_id: ${page.id}`,
+    `notion_last_edited: ${page.lastEdited}`,
     `synced_at: ${syncedAt}`,
     "---",
-    "",
-  ];
+    ""
+  );
   return lines.join("\n");
+}
+
+/** 본문 상단에 보이는 학습 날짜 줄. 종료일이 있으면 기간으로 표기. */
+export function buildDateLine(page: TilPage): string {
+  const start = page.date ?? page.createdTime.slice(0, 10);
+  if (page.dateEnd && page.dateEnd !== start) {
+    return `> 📅 **학습 기간**: ${start} ~ ${page.dateEnd}\n\n`;
+  }
+  return `> 📅 **학습일**: ${start}\n\n`;
+}
+
+/** 기존 .md 파일의 frontmatter에서 증분 동기화에 필요한 값만 파싱한다. */
+export function parseFrontmatter(
+  content: string
+): { notionId?: string; lastEdited?: string; title?: string } {
+  const m = content.match(/^---\n([\s\S]*?)\n---/);
+  if (!m) return {};
+  const block = m[1];
+  const id = block.match(/^notion_id:\s*(.+)$/m)?.[1]?.trim();
+  const edited = block.match(/^notion_last_edited:\s*(.+)$/m)?.[1]?.trim();
+  const title = block.match(/^title:\s*"((?:[^"\\]|\\.)*)"/m)?.[1]?.replace(/\\"/g, '"');
+  return { notionId: id, lastEdited: edited, title };
 }
 
 /**
