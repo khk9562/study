@@ -5,8 +5,7 @@ import { fileURLToPath } from "node:url";
 import { loadConfig } from "./config.js";
 import { createClient, getPublishedPages, type TilPage } from "./notion.js";
 import { pageToMarkdown, buildFrontmatter, slugify, tagToDir } from "./convert.js";
-import { applyRedactionMap } from "./redact.js";
-import { scanDenylist } from "./denylist.js";
+import { redact } from "./redact.js";
 import { buildReadme, type IndexEntry } from "./buildIndex.js";
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
@@ -46,17 +45,17 @@ async function main() {
   for (const page of pages) {
     const rawBody = await pageToMarkdown(notion, page.id);
 
-    // 1) 치환 사전 적용 (제목 + 본문)
-    const redactedTitle = applyRedactionMap(page.title, cfg.redactionMap);
-    const redactedBody = applyRedactionMap(rawBody, cfg.redactionMap);
-
-    // 2) denylist 스캔 — 잔존 위험 패턴이 있으면 발행 차단
-    const reasons = scanDenylist(`${redactedTitle}\n${redactedBody}`);
+    // 치환 사전 적용 + denylist 이중 스캔(원본 + 치환 후). 어느 한쪽이라도 걸리면 발행 차단.
+    const titleR = redact(page.title, cfg.redactionMap);
+    const bodyR = redact(rawBody, cfg.redactionMap);
+    const reasons = [...new Set([...titleR.blockedBy, ...bodyR.blockedBy])];
     if (reasons.length > 0) {
       blocked.push({ title: page.title, reasons });
       console.log(`  ⛔ 차단: "${page.title}" → [${reasons.join(", ")}]`);
       continue;
     }
+    const redactedTitle = titleR.text;
+    const redactedBody = bodyR.text;
 
     // 파일 경로 결정 (태그 폴더 + 슬러그, 충돌 시 notion_id 접미사)
     const dir = primaryTag(page);
