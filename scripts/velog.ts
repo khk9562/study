@@ -57,11 +57,14 @@ function classify(title: string, tags: string[]): string {
   if (hasTag("vite", "webpack", "npm", "git", "github", "prettier") || titleHas("개발환경", "세팅", "번들러", "폴더 구조", "prettier", "npm"))
     return "빌드·환경·Git";
   if (hasTag("fastapi", "sqlalchemy") || titleHas("fastapi", "백엔드")) return "백엔드·인프라";
+  if (hasTag("python", "python3") || titleHas("[python")) return "Python";
   if (hasTag("zustand", "recoil", "jotai", "reduxtoolkit", "contextapi", "reactquery", "tanstackquery") || titleHas("상태 관리", "데이터 교환"))
     return "데이터·상태관리";
   if (tagIncl("nextjs") || titleHas("[next.js")) return "Next.js";
   if (hasTag("typescript", "javascript") || titleHas("[typescript]")) return "JavaScript·TypeScript";
   if (tagIncl("react") || titleHas("[react]")) return "React";
+  // CS/웹 기초: 스토리지·쿠키·네트워크 등 (React troubleshooting인 #30은 위 React에서 이미 분류됨)
+  if (hasTag("webstorage", "sessionstorage") || titleHas("sessionstorage", "vpn", "쿠키")) return "CS";
   return "기타";
 }
 
