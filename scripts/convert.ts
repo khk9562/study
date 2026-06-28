@@ -38,10 +38,20 @@ export function buildFrontmatter(page: TilPage, syncedAt: string): string {
   return lines.join("\n");
 }
 
-/** 노션 페이지 본문을 마크다운 문자열로 변환한다. */
+/**
+ * 마크다운에서 이미지 임베드를 제거한다.
+ * 이유(공개 레포 보안): ① 노션 업로드 이미지는 회사 대시보드 스크린샷 등 민감 자료일 수 있고,
+ * ② 그 URL은 AWS presigned(임시 STS 토큰 포함, 1시간 만료)라 커밋하면 자격증명이 히스토리에 남는다.
+ * 따라서 이미지는 기본적으로 본문에서 빼고 자리표시만 남긴다.
+ */
+export function stripImages(md: string): string {
+  return md.replace(/!\[[^\]]*\]\([^)]*\)/g, "*(이미지 생략)*");
+}
+
+/** 노션 페이지 본문을 마크다운 문자열로 변환한다. (이미지는 보안상 제거) */
 export async function pageToMarkdown(notion: Client, pageId: string): Promise<string> {
   const n2m = new NotionToMarkdown({ notionClient: notion });
   const blocks = await n2m.pageToMarkdown(pageId);
   const md = n2m.toMarkdownString(blocks);
-  return (md.parent ?? "").trim();
+  return stripImages((md.parent ?? "").trim());
 }

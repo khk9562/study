@@ -15,10 +15,12 @@ export const DENY_RULES: DenyRule[] = [
   { name: "email", regex: /[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}/i },
   // 사설 IP 대역
   { name: "private-ip", regex: /\b(?:10\.\d{1,3}|172\.(?:1[6-9]|2\d|3[01])|192\.168)\.\d{1,3}\.\d{1,3}\b/ },
-  // AWS Access Key ID
-  { name: "aws-access-key", regex: /\bAKIA[0-9A-Z]{16}\b/ },
+  // AWS Access Key ID (AKIA 영구 키 / ASIA 임시 STS 키)
+  { name: "aws-key", regex: /\b(?:AKIA|ASIA)[0-9A-Z]{16}\b/ },
   // AWS Secret Access Key 패턴(긴 base64류) — aws_secret 키워드 동반 시
   { name: "aws-secret", regex: /aws_secret[_a-z]*\s*[:=]\s*['"]?[A-Za-z0-9/+]{30,}/i },
+  // AWS presigned URL (노션 업로드 이미지 등) — 임시 자격증명/서명 포함
+  { name: "aws-presigned-url", regex: /X-Amz-(?:Signature|Credential|Security-Token)=/i },
   // OpenAI / 일반 sk- 토큰
   { name: "sk-token", regex: /\bsk-[A-Za-z0-9_-]{20,}\b/ },
   // GitHub 토큰
