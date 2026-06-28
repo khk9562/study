@@ -1,0 +1,49 @@
+name: Sync TIL from Notion
+
+on:
+  schedule:
+    # 매일 한국시간 오전 6시 (UTC 21시)
+    - cron: "0 21 * * *"
+  workflow_dispatch: # 수동 실행 허용
+
+permissions:
+  contents: write
+
+concurrency:
+  group: sync-til
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Sync TIL
+        env:
+          NOTION_TOKEN: ${{ secrets.NOTION_TOKEN }}
+          NOTION_DATABASE_ID: ${{ secrets.NOTION_DATABASE_ID }}
+          REDACTION_MAP: ${{ secrets.REDACTION_MAP }}
+        run: npm run sync
+
+      - name: Commit & push if changed
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          if [[ -n "$(git status --porcelain)" ]]; then
+            git add -A
+            git commit -m "chore: sync TIL ($(date +%Y-%m-%d))"
+            git push
+          else
+            echo "변경 사항 없음 — 커밋 생략"
+          fi

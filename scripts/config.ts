@@ -1,0 +1,44 @@
+/**
+ * 환경 변수 로딩 및 검증.
+ * 로컬 실행 시 .env 를 직접 export 하거나, GitHub Actions 에서는 Secrets 로 주입한다.
+ */
+
+export interface Config {
+  notionToken: string;
+  databaseId: string;
+  /** 민감어 → 대체어 치환 사전. 공개 레포에 커밋하지 않고 Secret(REDACTION_MAP)으로 주입. */
+  redactionMap: Record<string, string>;
+  dryRun: boolean;
+}
+
+function required(name: string): string {
+  const v = process.env[name];
+  if (!v || !v.trim()) {
+    throw new Error(`환경 변수 ${name} 가 비어 있습니다. (.env 또는 GitHub Secrets 확인)`);
+  }
+  return v.trim();
+}
+
+export function loadConfig(): Config {
+  let redactionMap: Record<string, string> = {};
+  const raw = process.env.REDACTION_MAP;
+  if (raw && raw.trim()) {
+    try {
+      const parsed = JSON.parse(raw);
+      if (parsed && typeof parsed === "object" && !Array.isArray(parsed)) {
+        redactionMap = parsed;
+      } else {
+        throw new Error("객체(JSON object) 형태가 아닙니다.");
+      }
+    } catch (e) {
+      throw new Error(`REDACTION_MAP 파싱 실패: ${(e as Error).message}`);
+    }
+  }
+
+  return {
+    notionToken: required("NOTION_TOKEN"),
+    databaseId: required("NOTION_DATABASE_ID"),
+    redactionMap,
+    dryRun: process.argv.includes("--dry-run"),
+  };
+}
