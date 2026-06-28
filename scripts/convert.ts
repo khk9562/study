@@ -101,7 +101,11 @@ function cellToText(p: any): string {
   return v.replace(/\|/g, "\\|").replace(/\r?\n+/g, " ").trim();
 }
 
-/** 인라인 child 데이터베이스를 마크다운 표로 렌더링. 이미지/파일 컬럼은 제외. */
+/**
+ * child 데이터베이스(인라인 + 링크드 뷰)를 마크다운 표로 렌더링. 이미지/파일 컬럼은 제외.
+ * 링크드 뷰도 Notion이 `child_database` 블록으로 내려주므로 동일 경로로 처리된다.
+ * (원본 DB resolve가 안 되는 일부 링크드 뷰는 호출부에서 catch → 제목 폴백)
+ */
 async function renderChildDatabase(notion: Client, databaseId: string): Promise<string> {
   const db: any = await notion.databases.retrieve({ database_id: databaseId });
   const cols = Object.entries<any>(db.properties)
@@ -136,7 +140,7 @@ async function renderChildDatabase(notion: Client, databaseId: string): Promise<
 /** 노션 페이지 본문을 마크다운 문자열로 변환한다. (이미지 제거 + child DB는 표로 렌더링) */
 export async function pageToMarkdown(notion: Client, pageId: string): Promise<string> {
   const n2m = new NotionToMarkdown({ notionClient: notion });
-  // 인라인 child DB → 표. 행이 없거나 파일/이미지 전용이면 false 반환 → 기본 동작(제목)으로 폴백.
+  // child DB(인라인·링크드 뷰) → 표. 행이 없거나 파일/이미지 전용이면 false → 기본 동작(제목)으로 폴백.
   n2m.setCustomTransformer("child_database", async (block: any) => {
     const title = block.child_database?.title;
     try {
