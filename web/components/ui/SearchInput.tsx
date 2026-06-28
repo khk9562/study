@@ -1,32 +1,38 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import { Search, X } from "lucide-react";
 
+/**
+ * 입력은 즉시 표시(text)하되, 실제 검색(onChange)은 200ms 디바운스.
+ * 한글 IME 조합 중 쏟아지는 중간 입력(자음/모음 단위)을 흘려보내고,
+ * 입력이 잠깐 멈춘 = 글자가 완성된 시점에만 필터링한다.
+ */
 export function SearchInput({
-  value,
+  value = "",
   onChange,
   placeholder = "검색",
 }: {
-  value: string;
+  value?: string;
   onChange: (v: string) => void;
   placeholder?: string;
 }) {
-  // 입력창에 보이는 텍스트(조합 중 포함)는 내부 상태로, 실제 검색어(value)는
-  // 한글 조합이 끝났을 때만 갱신 → 자음/모음 단위가 아니라 완성된 글자 단위로 검색
   const [text, setText] = useState(value);
-  const composing = useRef(false);
+  const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  // 외부에서 value가 바뀌면(예: 초기화) 표시 텍스트도 동기화
-  useEffect(() => setText(value), [value]);
+  const fire = (v: string) => {
+    if (timer.current) clearTimeout(timer.current);
+    timer.current = setTimeout(() => onChange(v), 200);
+  };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const v = e.target.value;
     setText(v);
-    if (!composing.current && !e.nativeEvent.isComposing) onChange(v);
+    fire(v);
   };
 
   const clear = () => {
+    if (timer.current) clearTimeout(timer.current);
     setText("");
     onChange("");
   };
@@ -38,13 +44,6 @@ export function SearchInput({
         type="text"
         value={text}
         onChange={handleChange}
-        onCompositionStart={() => {
-          composing.current = true;
-        }}
-        onCompositionEnd={(e) => {
-          composing.current = false;
-          onChange(e.currentTarget.value); // 조합 완료 시점에 검색어 반영
-        }}
         placeholder={placeholder}
         className="w-full rounded-lg border border-border bg-surface py-2 pl-9 pr-9 text-sm text-foreground outline-none transition-colors placeholder:text-muted-2 focus:border-accent"
       />
