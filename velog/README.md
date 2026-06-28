@@ -2,7 +2,7 @@
 
 > [velog.io/@steela](https://velog.io/@steela/posts) 글을 마크다운으로 자동 아카이빙합니다. 직접 수정하지 마세요 — 동기화 시 덮어쓰여집니다.
 
-총 **61**개 · **11**개 폴더
+총 **61**개 · **12**개 폴더
 
 ## 코딩테스트 (18)
 
@@ -79,11 +79,6 @@
 - 2025-09-19 · [[Typescript] 리액트 개발자  관점에서 이해하는 Conditional Types](velog/JavaScript%C2%B7TypeScript/Typescript-%EB%A6%AC%EC%95%A1%ED%8A%B8-%EA%B0%9C%EB%B0%9C%EC%9E%90-%EA%B4%80%EC%A0%90%EC%97%90%EC%84%9C-%EC%9D%B4%ED%95%B4%ED%95%98%EB%8A%94-Conditional-Types.md) _(Conditional Types, JavaScript, React, typescript)_
 - 2025-09-19 · [[Typescript] typeof 연산자 유용하게 사용하는 법](velog/JavaScript%C2%B7TypeScript/Typescript-typeof-%EC%97%B0%EC%82%B0%EC%9E%90-%EC%9C%A0%EC%9A%A9%ED%95%98%EA%B2%8C-%EC%82%AC%EC%9A%A9%ED%95%98%EB%8A%94-%EB%B2%95.md) _(JavaScript, React, typescript)_
 
-## 기타 (2)
-
-- 2024-05-14 · [[Python3] 아스키코드 변환 함수](velog/%EA%B8%B0%ED%83%80/Python3-%EC%95%84%EC%8A%A4%ED%82%A4%EC%BD%94%EB%93%9C-%EB%B3%80%ED%99%98-%ED%95%A8%EC%88%98.md) _(ASCII, Python3, 아스키)_
-- 2024-03-05 · [localStorage VS sessionStorage VS cookie](velog/%EA%B8%B0%ED%83%80/localStorage-VS-sessionStorage-VS-cookie.md) _(Web Storage, cookie, localstorage, sessionStorage, web)_
-
 ## 데이터·상태관리 (2)
 
 - 2024-06-16 · [상태 관리 라이브러리 선택 고민, Zustand](velog/%EB%8D%B0%EC%9D%B4%ED%84%B0%C2%B7%EC%83%81%ED%83%9C%EA%B4%80%EB%A6%AC/%EC%83%81%ED%83%9C-%EA%B4%80%EB%A6%AC-%EB%9D%BC%EC%9D%B4%EB%B8%8C%EB%9F%AC%EB%A6%AC-%EC%84%A0%ED%83%9D-%EA%B3%A0%EB%AF%BC-Zustand.md) _(Context API, Jotai, Recoil, redux-toolkit, zustand)_
@@ -97,4 +92,12 @@
 ## 자격증 (1)
 
 - 2024-04-29 · [정보처리기사 실기 준비](velog/%EC%9E%90%EA%B2%A9%EC%A6%9D/%EC%A0%95%EB%B3%B4%EC%B2%98%EB%A6%AC%EA%B8%B0%EC%82%AC-%EC%8B%A4%EA%B8%B0-%EC%A4%80%EB%B9%84.md) _(2024년도 1회차, INFJ, INTJ, 정보처리기사 실기)_
+
+## CS (1)
+
+- 2024-03-05 · [localStorage VS sessionStorage VS cookie](velog/CS/localStorage-VS-sessionStorage-VS-cookie.md) _(Web Storage, cookie, localstorage, sessionStorage, web)_
+
+## Python (1)
+
+- 2024-05-14 · [[Python3] 아스키코드 변환 함수](velog/Python/Python3-%EC%95%84%EC%8A%A4%ED%82%A4%EC%BD%94%EB%93%9C-%EB%B3%80%ED%99%98-%ED%95%A8%EC%88%98.md) _(ASCII, Python3, 아스키)_
 
