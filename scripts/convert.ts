@@ -103,12 +103,7 @@ function cellToText(p: any): string {
 
 /** 인라인 child 데이터베이스를 마크다운 표로 렌더링. 이미지/파일 컬럼은 제외. */
 async function renderChildDatabase(notion: Client, databaseId: string): Promise<string> {
-  let db: any;
-  try {
-    db = await notion.databases.retrieve({ database_id: databaseId });
-  } catch {
-    return ""; // 접근 불가/링크드뷰 등 → 폴백
-  }
+  const db: any = await notion.databases.retrieve({ database_id: databaseId });
   const cols = Object.entries<any>(db.properties)
     .filter(([, p]) => p.type !== "files") // 이미지/파일 컬럼 제외
     .map(([name, p]) => ({ name, type: p.type }))
@@ -143,10 +138,20 @@ export async function pageToMarkdown(notion: Client, pageId: string): Promise<st
   const n2m = new NotionToMarkdown({ notionClient: notion });
   // 인라인 child DB → 표. 행이 없거나 파일/이미지 전용이면 false 반환 → 기본 동작(제목)으로 폴백.
   n2m.setCustomTransformer("child_database", async (block: any) => {
-    const table = await renderChildDatabase(notion, block.id);
-    if (!table) return false;
     const title = block.child_database?.title;
-    return `${title ? `**${title}**\n\n` : ""}${table}`;
+    try {
+      const table = await renderChildDatabase(notion, block.id);
+      if (!table) {
+        console.warn(`ℹ child_database 행없음/파일전용: id=${block.id} title=${title}`);
+        return false;
+      }
+      return `${title ? `**${title}**\n\n` : ""}${table}`;
+    } catch (e: any) {
+      console.warn(
+        `⚠ child_database 접근불가(링크드뷰 추정): id=${block.id} title=${title} err=${e?.code || e?.message}`
+      );
+      return false;
+    }
   });
   const blocks = await n2m.pageToMarkdown(pageId);
   const md = n2m.toMarkdownString(blocks);
