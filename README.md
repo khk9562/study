@@ -1,5 +1,7 @@
 # 📚 archive_studying
 
+> 🌐 **웹사이트**: https://khk9562.github.io/archive_studying/ (폴더별로 게시글처럼 보기)
+>
 > 학습 기록 아카이브 — **Notion TIL**과 **Velog** 글을 자동으로 마크다운 동기화합니다.
 > 이 파일은 자동 생성됩니다. 직접 수정하지 마세요 — 동기화 시 덮어쓰여집니다.
 > 작성은 Notion/Velog에서, 공개 글만 흡수되며 회사·보안 정보는 필터링됩니다.
