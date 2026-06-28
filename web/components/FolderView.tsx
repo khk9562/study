@@ -20,14 +20,20 @@ export function FolderView({ folder, items }: { folder: string; items: PostItem[
   const [q, setQ] = useState("");
   const query = q.trim().toLowerCase();
 
+  // 가장 오래된 글이 1번, 최신글이 N번. (목록은 최신순이라 맨 위가 N번)
+  const numbered = useMemo(
+    () => items.map((it, i) => ({ ...it, num: items.length - i })),
+    [items]
+  );
+
   const filtered = useMemo(() => {
-    if (!query) return items;
-    return items.filter(
+    if (!query) return numbered;
+    return numbered.filter(
       (it) =>
         it.title.toLowerCase().includes(query) ||
         it.tags.some((t) => t.toLowerCase().includes(query))
     );
-  }, [items, query]);
+  }, [numbered, query]);
 
   return (
     <>
@@ -59,7 +65,7 @@ export function FolderView({ folder, items }: { folder: string; items: PostItem[
                   >
                     <div className="flex items-baseline gap-2.5">
                       <span className="shrink-0 font-mono tabular-nums text-base text-accent">
-                        {String(i + 1).padStart(2, "0")}
+                        {String(p.num).padStart(2, "0")}
                       </span>
                       <h3 className="text-base font-semibold tracking-tight text-foreground transition-colors group-hover:text-accent">
                         {p.title}

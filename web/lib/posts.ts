@@ -29,6 +29,10 @@ const SOURCES: Post["source"][] = ["til", "velog"];
 // 원본에 섞인 제어문자(예: 백스페이스 U+0008) 제거 — js-yaml 파싱 깨짐 방지 (\t \n \r 은 유지)
 const CONTROL_CHARS = new RegExp("[\\u0000-\\u0008\\u000B\\u000C\\u000E-\\u001F\\u007F]", "g");
 
+// 빌드 당일 날짜. 대량 속성 변경(폴더/공개 등)으로 오늘로 찍힌 수정일은
+// 실제 콘텐츠 수정이 아니므로 '수정일 없음'으로 간주 → 작성일 기준 정렬/표시.
+const TODAY = new Date().toISOString().slice(0, 10);
+
 function listMarkdown(dir: string): string[] {
   if (!existsSync(dir)) return [];
   const out: string[] = [];
@@ -91,7 +95,9 @@ export function getAllPosts(): Post[] {
 
       const created = dateOnly(data.date) || dateOnly(data.synced_at);
       // 실제 편집일 필드만(폴백 없음) → 없으면 빈 문자열 → UI에서 '수정' 라벨 숨김
-      const edited = dateOnly(data.notion_last_edited) || dateOnly(data.velog_updated);
+      let edited = dateOnly(data.notion_last_edited) || dateOnly(data.velog_updated);
+      // 빌드 당일로 찍힌 수정일(대량 속성 변경 등)은 수정 없음으로 간주
+      if (edited === TODAY) edited = "";
 
       posts.push({
         folder,
