@@ -8,6 +8,8 @@ export interface TilPage {
   date: string | null;
   /** 학습 종료일(날짜 범위일 때만). 단일 날짜면 null */
   dateEnd: string | null;
+  /** 폴더 분류(Select). 없으면 null → 첫 태그/기타로 폴백 */
+  folder: string | null;
   createdTime: string;
   /** Notion 마지막 편집시각(ISO). 증분 동기화 변경 감지에 사용 */
   lastEdited: string;
@@ -24,6 +26,11 @@ function readTags(props: any): string[] {
   const m = props?.["태그"]?.multi_select;
   if (Array.isArray(m)) return m.map((x: any) => x.name);
   return [];
+}
+
+function readFolder(props: any): string | null {
+  const f = props?.["폴더"]?.select?.name;
+  return typeof f === "string" && f.trim() ? f.trim() : null;
 }
 
 function readDate(props: any): string | null {
@@ -68,6 +75,7 @@ export async function getPublishedPages(
         tags: readTags(props),
         date: readDate(props),
         dateEnd: readDateEnd(props),
+        folder: readFolder(props),
         createdTime: page.created_time,
         lastEdited: page.last_edited_time,
       });

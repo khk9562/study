@@ -27,8 +27,11 @@ function toPosix(p: string): string {
   return p.split("\\").join("/");
 }
 
-function primaryTag(page: TilPage): string {
-  return page.tags.length ? tagToDir(page.tags[0]) : "기타";
+/** 폴더 결정: Notion `폴더` 속성 우선 → 없으면 첫 태그 → 그것도 없으면 기타. */
+function folderOf(page: TilPage): string {
+  if (page.folder) return tagToDir(page.folder);
+  if (page.tags.length) return tagToDir(page.tags[0]);
+  return "기타";
 }
 
 interface ExistingFile {
@@ -124,7 +127,7 @@ async function main() {
     const redactedBody = bodyR.text;
 
     // 경로 결정 (태그 폴더 + 슬러그, 충돌 시 notion_id 접미사)
-    const dir = primaryTag(page);
+    const dir = folderOf(page);
     let slug = slugify(redactedTitle);
     let rel = `til/${dir}/${slug}.md`;
     if (usedPaths.has(rel)) {
