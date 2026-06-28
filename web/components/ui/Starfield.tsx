@@ -46,10 +46,10 @@ export function Starfield() {
       className="no-print pointer-events-none fixed left-0 top-0 -z-10 hidden h-screen w-screen overflow-hidden dark:block"
       style={{
         // 좌→우 페이드(왼쪽 진하게). 그라데이션이 과하지 않게 완만히.
-        WebkitMaskImage: "linear-gradient(to right, #000 0%, #000 55%, transparent 96%)",
-        maskImage: "linear-gradient(to right, #000 0%, #000 55%, transparent 96%)",
-        // 위는 풀너비, 아래는 50% 너비 → 우측 경계가 대각선으로 좁아지는 사다리꼴
-        clipPath: "polygon(0 0, 100% 0, 50% 100%, 0 100%)",
+        WebkitMaskImage: "linear-gradient(to right, #000 0%, #000 33%, transparent 60%)",
+        maskImage: "linear-gradient(to right, #000 0%, #000 33%, transparent 60%)",
+        // 전체 너비 ~60%로 축소. 위 60% · 아래 30% → 대각선 사다리꼴
+        clipPath: "polygon(0 0, 60% 0, 30% 100%, 0 100%)",
       }}
     >
       {layers.map((l, i) => (
