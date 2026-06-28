@@ -13,6 +13,7 @@ export interface Post {
   edited: string; // 편집일 (YYYY-MM-DD)
   velogUrl?: string;
   body: string;
+  excerpt: string; // 목록용 본문 발췌(평문)
 }
 
 export interface FolderSummary {
@@ -40,6 +41,24 @@ function listMarkdown(dir: string): string[] {
 
 function dateOnly(v: unknown): string {
   return typeof v === "string" ? v.slice(0, 10) : "";
+}
+
+/** 마크다운 본문 → 목록용 평문 발췌. 메타 인용구·코드·이미지·서식 제거. */
+function toExcerpt(body: string): string {
+  return body
+    .replace(/```[\s\S]*?```/g, " ") // 코드블록
+    .split("\n")
+    .filter((l) => !l.trim().startsWith(">")) // 메타 인용구(📅 학습일 / 🔗 원본)
+    .join("\n")
+    .replace(/!\[[^\]]*\]\([^)]*\)/g, "") // 이미지
+    .replace(/\[([^\]]*)\]\([^)]*\)/g, "$1") // 링크 → 텍스트
+    .replace(/^#{1,6}\s+/gm, "") // 헤딩 마커
+    .replace(/^\s*[-*+]\s+/gm, "") // 글머리표
+    .replace(/^\s*\d+\.\s+/gm, "") // 번호목록
+    .replace(/[*_`~|]/g, " ") // 강조/표 기호
+    .replace(/\s+/g, " ")
+    .trim()
+    .slice(0, 200);
 }
 
 let _cache: Post[] | null = null;
@@ -80,6 +99,7 @@ export function getAllPosts(): Post[] {
         edited,
         velogUrl: typeof data.velog_url === "string" ? data.velog_url : undefined,
         body: content.trim(),
+        excerpt: toExcerpt(content),
       });
     }
   }

@@ -41,32 +41,41 @@ export default async function FolderPage({
       <SectionHeading eyebrow={`${posts.length} posts`} title={folder} />
 
       <ul className="divide-y divide-border border-y border-border">
-        {posts.map((p, i) => (
-          <Reveal key={p.slug} delay={Math.min(i * 0.03, 0.3)}>
-            <li>
-              <Link
-                href={`/${encodeURIComponent(folder)}/${encodeURIComponent(p.slug)}`}
-                className="group flex flex-col gap-2 py-5 sm:flex-row sm:items-baseline sm:justify-between"
-              >
-                <div className="flex-1">
+        {posts.map((p, i) => {
+          const created =
+            p.createdEnd && p.createdEnd !== p.created
+              ? `${p.created} ~ ${p.createdEnd}`
+              : p.created;
+          return (
+            <Reveal key={p.slug} delay={Math.min(i * 0.03, 0.3)}>
+              <li>
+                <Link
+                  href={`/${encodeURIComponent(folder)}/${encodeURIComponent(p.slug)}`}
+                  className="group block py-5"
+                >
                   <h3 className="text-base font-semibold tracking-tight text-foreground transition-colors group-hover:text-accent">
                     {p.title}
                   </h3>
-                  {p.tags.length > 0 && (
-                    <div className="mt-2 flex flex-wrap gap-1.5">
-                      {p.tags.slice(0, 4).map((t) => (
-                        <Badge key={t} variant="outline">
-                          {t}
-                        </Badge>
-                      ))}
-                    </div>
+                  {p.excerpt && (
+                    <p className="mt-1.5 line-clamp-2 text-sm leading-relaxed text-muted">
+                      {p.excerpt}
+                    </p>
                   )}
-                </div>
-                <span className="shrink-0 font-mono text-xs text-muted-2">{p.created}</span>
-              </Link>
-            </li>
-          </Reveal>
-        ))}
+                  <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-2">
+                    <span className="font-mono text-xs text-muted-2">
+                      작성 {created} · 수정 {p.edited}
+                    </span>
+                    {p.tags.slice(0, 4).map((t) => (
+                      <Badge key={t} variant="outline">
+                        {t}
+                      </Badge>
+                    ))}
+                  </div>
+                </Link>
+              </li>
+            </Reveal>
+          );
+        })}
       </ul>
     </div>
   );
