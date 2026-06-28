@@ -64,6 +64,41 @@ npm run sync:dry
 - 회사명/프로젝트명이 대체어로 치환되는가
 - 사내 이메일/IP/토큰이 들어간 글이 `⛔ 차단` 되는가
 
+## 3-1. 터미널에서 시크릿 관리 (GUI 타이핑 불필요)
+
+### REDACTION_MAP — 로컬 JSON 파일로 관리
+GitHub 웹 GUI에 JSON을 매번 붙여넣는 대신, 로컬 파일을 편집하고 한 줄로 업로드한다.
+
+```bash
+cp secrets/redaction.example.json secrets/redaction.json   # 최초 1회
+# secrets/redaction.json 을 에디터로 편집 (회사명 → 대체어)
+npm run secrets:redaction                                   # = gh secret set REDACTION_MAP < secrets/redaction.json
+```
+
+- `secrets/redaction.json` 은 `.gitignore` 로 **커밋되지 않는다**(예시 파일만 추적).
+- JSON 유효성 검사 후 업로드하며, 값은 GitHub에 암호화 저장된다.
+- 수정할 때도 파일만 고쳐 `npm run secrets:redaction` 다시 실행하면 덮어쓴다.
+
+### 그 외 단순 문자열 시크릿
+```bash
+gh secret set NOTION_TOKEN          # 입력 프롬프트가 뜨면 값 붙여넣기
+gh secret set NOTION_DATABASE_ID
+gh secret set TELEGRAM_BOT_TOKEN
+gh secret set TELEGRAM_CHAT_ID
+gh secret list                      # 등록된 시크릿 목록 확인
+```
+
+## 3-2. 로컬에서 Telegram 연동 테스트
+`.env` 에 `TELEGRAM_BOT_TOKEN` / `TELEGRAM_CHAT_ID` 를 넣은 뒤:
+
+```bash
+cp .env.example .env     # 최초 1회, 값 채우기
+npm run telegram:test                  # 기본 메시지 전송
+npm run telegram:test -- "원하는 내용"  # 임의 메시지 전송
+```
+
+성공하면 `✅ 전송 성공`, 실패하면 원인(토큰 오류/챗 ID 오류 등)을 출력한다.
+
 ## 4. 보안 레이어 요약
 1. **게이트**: `공개` 체크된 글만 대상.
 2. **치환**: `REDACTION_MAP`의 민감어를 대체어로 (제목·본문 전체).

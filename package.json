@@ -6,7 +6,9 @@
   "description": "Notion TIL을 자동 동기화하는 마크다운 미러 레포",
   "scripts": {
     "sync": "tsx scripts/sync.ts",
-    "sync:dry": "tsx scripts/sync.ts --dry-run"
+    "sync:dry": "tsx scripts/sync.ts --dry-run",
+    "telegram:test": "tsx scripts/telegram-test.ts",
+    "secrets:redaction": "bash scripts/push-secrets.sh"
   },
   "dependencies": {
     "@notionhq/client": "^2.2.15",
