@@ -55,6 +55,19 @@ jobs:
             npm run sync
           fi
 
+      - name: Sync Velog
+        env:
+          REDACTION_MAP: ${{ secrets.REDACTION_MAP }}
+          VELOG_USERNAME: ${{ vars.VELOG_USERNAME }}
+          DRY_RUN: ${{ inputs.dry_run }}
+          FORCE_REBUILD: ${{ inputs.force_rebuild }}
+        run: |
+          if [[ "$DRY_RUN" == "true" ]]; then
+            npm run velog -- --dry-run
+          else
+            npm run velog
+          fi
+
       - name: Commit & push if changed
         # 예약 실행(schedule) 또는 수동 실행 중 dry_run이 아닐 때만 커밋
         if: ${{ inputs.dry_run != true }}

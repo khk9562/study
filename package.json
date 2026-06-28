@@ -8,7 +8,9 @@
     "sync": "tsx scripts/sync.ts",
     "sync:dry": "tsx scripts/sync.ts --dry-run",
     "telegram:test": "tsx scripts/telegram-test.ts",
-    "secrets:redaction": "bash scripts/push-secrets.sh"
+    "secrets:redaction": "bash scripts/push-secrets.sh",
+    "velog": "tsx scripts/velog.ts",
+    "velog:dry": "tsx scripts/velog.ts --dry-run"
   },
   "dependencies": {
     "@notionhq/client": "^2.2.15",
