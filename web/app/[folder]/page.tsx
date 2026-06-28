@@ -54,7 +54,7 @@ export default async function FolderPage({
                   className="group block rounded-lg px-3 py-5 transition-colors hover:bg-surface-2/50 sm:px-4"
                 >
                   <div className="flex items-baseline gap-2.5">
-                    <span className="shrink-0 font-black tabular-nums text-lg leading-none text-accent/25">
+                    <span className="shrink-0 font-mono tabular-nums text-base text-accent">
                       {String(i + 1).padStart(2, "0")}
                     </span>
                     <h3 className="text-base font-semibold tracking-tight text-foreground transition-colors group-hover:text-accent">
