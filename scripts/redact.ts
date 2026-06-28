@@ -1,5 +1,8 @@
 import { applyMasks, scanDenylist } from "./denylist.js";
 
+// 제어문자(백스페이스 등). \t(09) \n(0A) \r(0D)은 제외.
+const CONTROL_CHARS = new RegExp("[\\u0000-\\u0008\\u000B\\u000C\\u000E-\\u001F\\u007F]", "g");
+
 /** 정규식 메타문자를 이스케이프한다. */
 function escapeRegExp(s: string): string {
   return s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
@@ -37,7 +40,9 @@ export interface RedactionResult {
  * 차단 규칙(토큰/키 등)은 원본·결과 양쪽에서 검사해 하나라도 걸리면 safe=false(발행 차단).
  */
 export function redact(text: string, map: Record<string, string>): RedactionResult {
-  const masked = applyMasks(text);
+  // 제어문자 제거(\t \n \r 유지) — 마크다운/YAML 파싱 깨짐 방지
+  const cleaned = text.replace(CONTROL_CHARS, "");
+  const masked = applyMasks(cleaned);
   const redacted = applyRedactionMap(masked, map);
   const blockedBy = [...new Set([...scanDenylist(text), ...scanDenylist(redacted)])];
   return {
