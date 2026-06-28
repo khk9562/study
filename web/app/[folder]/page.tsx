@@ -2,9 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
 import { getFolders, getPostsByFolder } from "@/lib/posts";
-import { SectionHeading } from "@/components/ui/SectionHeading";
-import { Badge } from "@/components/ui/Badge";
-import { Reveal } from "@/components/ui/Reveal";
+import { FolderView, type PostItem } from "@/components/FolderView";
 
 export const dynamicParams = false;
 
@@ -29,6 +27,16 @@ export default async function FolderPage({
   const posts = getPostsByFolder(folder);
   if (posts.length === 0) notFound();
 
+  const items: PostItem[] = posts.map((p) => ({
+    slug: p.slug,
+    title: p.title,
+    tags: p.tags,
+    created: p.created,
+    createdEnd: p.createdEnd ?? null,
+    edited: p.edited,
+    excerpt: p.excerpt,
+  }));
+
   return (
     <div className="mx-auto max-w-5xl px-5 py-16 md:py-20">
       <Link
@@ -38,53 +46,7 @@ export default async function FolderPage({
         <ArrowLeft className="h-3.5 w-3.5" /> 전체 폴더
       </Link>
 
-      <SectionHeading eyebrow={`${posts.length} posts`} title={folder} />
-
-      <ul className="divide-y divide-border border-y border-border">
-        {posts.map((p, i) => {
-          const created =
-            p.createdEnd && p.createdEnd !== p.created
-              ? `${p.created} ~ ${p.createdEnd}`
-              : p.created;
-          return (
-            <Reveal key={p.slug} delay={Math.min(i * 0.03, 0.3)}>
-              <li>
-                <Link
-                  href={`/${encodeURIComponent(folder)}/${encodeURIComponent(p.slug)}`}
-                  className="group block rounded-lg px-3 py-5 transition-colors hover:bg-surface-2/50 sm:px-4"
-                >
-                  <div className="flex items-baseline gap-2.5">
-                    <span className="shrink-0 font-mono tabular-nums text-base text-accent">
-                      {String(i + 1).padStart(2, "0")}
-                    </span>
-                    <h3 className="text-base font-semibold tracking-tight text-foreground transition-colors group-hover:text-accent">
-                      {p.title}
-                    </h3>
-                  </div>
-                  {p.excerpt && (
-                    <p className="mt-1.5 line-clamp-2 px-1.5 text-[11px] leading-relaxed text-muted-2/70">
-                      {p.excerpt}
-                    </p>
-                  )}
-                  <div className="mt-3 flex items-center justify-between gap-3">
-                    <div className="flex flex-wrap gap-1.5">
-                      {p.tags.slice(0, 4).map((t) => (
-                        <Badge key={t} variant="outline">
-                          {t}
-                        </Badge>
-                      ))}
-                    </div>
-                    <span className="shrink-0 font-mono text-xs text-muted-2">
-                      작성 {created}
-                      {p.edited && ` · 수정 ${p.edited}`}
-                    </span>
-                  </div>
-                </Link>
-              </li>
-            </Reveal>
-          );
-        })}
-      </ul>
+      <FolderView folder={folder} items={items} />
     </div>
   );
 }

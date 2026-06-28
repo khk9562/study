@@ -109,7 +109,9 @@ export function getAllPosts(): Post[] {
     }
   }
 
-  posts.sort((a, b) => b.created.localeCompare(a.created));
+  // 수정일(없으면 작성일) 기준 최신순
+  const eff = (p: Post) => p.edited || p.created;
+  posts.sort((a, b) => eff(b).localeCompare(eff(a)));
   _cache = posts;
   return posts;
 }
@@ -125,7 +127,10 @@ export function getFolders(): FolderSummary[] {
     .map(([folder, list]) => ({
       folder,
       count: list.length,
-      latest: list.reduce((m, p) => (p.created > m ? p.created : m), ""),
+      latest: list.reduce((m, p) => {
+        const d = p.edited || p.created;
+        return d > m ? d : m;
+      }, ""),
     }))
     .sort((a, b) => b.count - a.count || a.folder.localeCompare(b.folder, "ko"));
 }
